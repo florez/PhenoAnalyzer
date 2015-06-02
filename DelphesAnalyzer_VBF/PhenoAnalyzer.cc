@@ -5,7 +5,6 @@
 ////////////////////////////////////////////////////////////////
 
 #include <iostream>
-// Comment the following lines if you do not need ROOT or HepMC
 #include "ROOTFunctions.h"
 #include "PhenoAnalyzer.h"
 
