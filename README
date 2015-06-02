@@ -10,8 +10,7 @@ To get the code you need to follow the next steps:
 
 2. cd PhenoAnalyzer/DelphesAnalyzer
 
-3. In the PhenoAnalyzer.cc, change the "chain.Add("output_delphes.root");" and put the name of the Delphes ntuple 
-   you want to run over (and the directory where it is located).
+3. In the PhenoAnalyzer.cc, change the "chain.Add("output_delphes.root");" and put the name of the Delphes ntuple you want to run over (and the directory where it is located).
 
 4. To compile the code do: make compile_ROOT_Delphes
 
