@@ -15,3 +15,16 @@ To get the code you need to follow the next steps:
 4. To compile the code do: make compile_ROOT_Delphes
 
 5. To run the code do: ./PhenoAnalyzer
+
+################ Instructions to make changes using GIT ###################
+##### USING DelphesAnalyzer as example, BUT you should 
+##### use either DelphesAnalyzer_status or DelphesAnalyzer_VBF depending 
+##### of your analysis 
+cd DelphesAnalyzer_VBF 
+##### If you open for example PhenoAnalyzer.cc and make changes, to commit to GIT you need to: 
+git add PhenoAnalyzer.cc
+git commit -m "Write something short on the comments to explain the change you've made""
+git push DelphesAnalyzer_VBF master
+##### You'll need to enter your key-password, so please be sure you do not forget it!
+##### check this page:
+https://twiki.cern.ch/twiki/bin/view/Main/ForGIT
