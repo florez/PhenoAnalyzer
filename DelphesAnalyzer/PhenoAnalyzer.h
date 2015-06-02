@@ -1,3 +1,9 @@
+////////////////////////////////////////////////////////////////
+//                                                            //
+// Author: Andrés Flórez, Universidad de los Andes, Colombia  //
+//                                                            //
+////////////////////////////////////////////////////////////////
+
 #ifndef _PHENOANALYZER_H_
 #define _PHENOANALYZER_H_
 
