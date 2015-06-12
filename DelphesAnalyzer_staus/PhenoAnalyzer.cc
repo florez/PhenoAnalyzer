@@ -65,7 +65,8 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
                  // Jet energy is not correct! YOU NEED TO CALCULATE THE P OF THE JET 
                  // USING THE JET ETA and PT
                  cout <<"JET PT "<<jet->PT<<endl;
-                 double jet_energy = sqrt(pow(jet->PT, 2) + pow(jet->Mass, 2));
+		 double p = sqrt(pow(exp(jet->Eta)*jet->PT/2, 2)-pow(jet->PT,2));
+                 double jet_energy = sqrt(pow(p, 2) + pow(jet->Mass, 2));
                  Jet_leading_vec.SetPtEtaPhiE(jet->PT, jet->Eta, jet->Phi, jet_energy);
                  if(jet->PT > 30.0 ){pass_cuts[0] = 1;}
                  if((jet->PT > 30.0) && (abs(jet->Eta) < 5.0) ){pass_cuts[1] = 1;}
