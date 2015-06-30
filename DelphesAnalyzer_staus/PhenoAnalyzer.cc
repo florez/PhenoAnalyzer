@@ -14,8 +14,12 @@ int main(int argc, char *argv[]) {
 
   TApplication app("App",&argc, argv);
   TChain chain("Delphes");
-  chain.Add("output_delphes.root");
-  TFile * HistoOutputFile = new TFile("HistoOutputFile.root", "RECREATE");
+  cout<<argc<<endl;
+  cout<<argv[1]<<endl;
+  char *temp = (char *) malloc(512*sizeof(char *));
+  strcpy(temp, argv[1]);
+  chain.Add(strcat(argv[1],".root"));
+  TFile * HistoOutputFile = new TFile(strcat(temp,"_output.root"), "RECREATE");
   int nDir = 5;
   TDirectory *theDirectory[nDir];
   theDirectory[0] = HistoOutputFile->mkdir("After_cut_1");
@@ -62,9 +66,9 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
 	     {
 	       Jet *jet = (Jet*) branchJet->At(j);
                if (jet->PT == jet_highest_pt){
-                 // Jet energy is not correct! YOU NEED TO CALCULATE THE P OF THE JET 
-                 // USING THE JET ETA and PT
-                 cout <<"JET PT "<<jet->PT<<endl;
+              
+                 // USING THE JET ETA and P
+                 
 		 double p = sqrt(pow(exp(jet->Eta)*jet->PT/2, 2)-pow(jet->PT,2));
                  double jet_energy = sqrt(pow(p, 2) + pow(jet->Mass, 2));
                  Jet_leading_vec.SetPtEtaPhiE(jet->PT, jet->Eta, jet->Phi, jet_energy);
