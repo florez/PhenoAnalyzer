@@ -38,9 +38,19 @@ public :
    PhenoAnalysis(TChain&, TFile*, TDirectory* dir[], int nDir);
    ~PhenoAnalysis();
    void crateHistoMasps (int);
-   std::map<unsigned int, TH1*> _hmap_jet_pT;
-   std::map<unsigned int, TH1*> _hmap_jet_eta;
-
+   bool overlapingObjects(double, double, double, double, double);
+   // For Jets
+   std::map<unsigned int, TH1*> _hmap_lead_jet_pT;
+   std::map<unsigned int, TH1*> _hmap_lead_jet_eta;
+   std::map<unsigned int, TH1*> _hmap_lead_jet_phi;
+   
+   // For Taus
+   std::map<unsigned int, TH1*> _hmap_tau1_pT;
+   std::map<unsigned int, TH1*> _hmap_tau1_eta;
+   std::map<unsigned int, TH1*> _hmap_tau1_phi;
+   std::map<unsigned int, TH1*> _hmap_tau2_pT;
+   std::map<unsigned int, TH1*> _hmap_tau2_eta;
+   std::map<unsigned int, TH1*> _hmap_tau2_phi;
 private :
 
 };
