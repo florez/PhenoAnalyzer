@@ -8,13 +8,27 @@ To get the code you need to follow the next steps:
 
 1. git clone https://github.com/florez/PhenoAnalyzer
 
-2. cd PhenoAnalyzer/DelphesAnalyzer
+2. cd PhenoAnalyzer
 
-3. In the PhenoAnalyzer.cc, change the "chain.Add("output_delphes.root");" and put the name of the Delphes ntuple you want to run over (and the directory where it is located).
+3. IMPORTANT, PLEASE BE CAREFUL IN THIS STEP. To be able to commit modifications to your code, do the following:
 
-4. To compile the code do: make compile_ROOT_Delphes
+  3.1 git remote add YOUR_PROJECT_NAME git@github.com:florez/PhenoAnalyzer.git (where YOUR _PROJECT_NAME IS FOR EXAMPLE: DelphesAnalyzer_staus OR DelphesAnalyzer_VBF).
 
-5. To run the code do: ./PhenoAnalyzer
+  3.2 git remote -v
+
+  3.3 git push YOUR_PROJECT_NAME master
+
+NOTE: YOU ONLY NEED TO DO THIS THE FIRST TIME YOU DOWNLOAD THE CODE.
+
+4. Examples how to compile and run the template code (same applies to the "_status" and "_VBF") 
+
+  4.1 cd PhenoAnalyzer/DelphesAnalyzer
+
+  5.2 In the PhenoAnalyzer.cc, change the "chain.Add("output_delphes.root");" and put the name of the Delphes ntuple you want to run over (and the directory where it is located).
+
+  5.3 To compile the code do: make compile_ROOT_Delphes
+
+  5.4 To run the code do: ./PhenoAnalyzer
 
 ################ Instructions to make changes using GIT ###################
 ##### USING DelphesAnalyzer as example, BUT you should 
@@ -24,6 +38,7 @@ cd DelphesAnalyzer_VBF
 ##### If you open for example PhenoAnalyzer.cc and make changes, to commit to GIT you need to: 
 git add PhenoAnalyzer.cc
 git commit -m "Write something short on the comments to explain the change you've made""
+Go to the PhenoAnalyzer/ directory
 git push DelphesAnalyzer_VBF master
 ##### You'll need to enter your key-password, so please be sure you do not forget it!
 ##### check this page:
