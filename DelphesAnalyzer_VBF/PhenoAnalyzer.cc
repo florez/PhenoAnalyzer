@@ -64,6 +64,7 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
    float tau2_pt_min      = params->GetValue ("tau2_pt_min", 10.);
    float tau3_pt_min      = params->GetValue ("tau3_pt_min", 10.);
    float tau_eta_max      = params->GetValue ("tau_eta_max", 2.5);
+   float b_jet_pt_min     = params->GetValue ("b_jet_pt_min", 20.0);
     
    crateHistoMasps(nDir);
 
@@ -104,7 +105,7 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
            for (int j = 0; j < branchJet->GetEntriesFast(); j++)
              {
                Jet *jet = (Jet*) branchJet->At(j);
-               if ((jet->PT > 20.0) && (jet->BTag == 1)){is_b_jet = true;}
+               if ((jet->PT > b_jet_pt_min) && (jet->BTag == 1)){is_b_jet = true;}
                if (jet->TauTag == 1){
                  if ((abs(jet->Eta) < tau_eta_max)){
                    tau_index.push_back(j);
@@ -169,7 +170,6 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
             // Apply central event selection criteria
             bool pass_lead_jet_cuts = false;
             bool pass_sublead_jet_cuts = false;
-            cout << "LEADING JET "<<Jet_leading_vec.Pt()<<"  SUB LEADING JET "<<Jet_subleading_vec.Pt()<<endl;
 
             if ((Tau1_vec.Pt() > tau1_pt_min) || (Tau2_vec.Pt() > tau2_pt_min) || (Tau3_vec.Pt() > tau3_pt_min)){
                pass_cuts[0] = 1; 
