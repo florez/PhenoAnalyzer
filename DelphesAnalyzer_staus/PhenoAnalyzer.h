@@ -10,6 +10,7 @@
 #include "TF2.h"
 #include "TH1F.h"
 #include "TChain.h"
+#include "TEnv.h"
 
 #include <iostream>
 #include <utility>
@@ -30,6 +31,7 @@
 #include "DelphesFunctions.h"
 #include "TDirectory.h"
 #include "TFile.h"
+#include <fstream>
 
 using namespace std;
 
