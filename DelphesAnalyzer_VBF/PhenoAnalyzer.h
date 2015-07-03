@@ -10,6 +10,7 @@
 #include "TF2.h"
 #include "TH1F.h"
 #include "TChain.h"
+#include "TEnv.h" 
 
 #include <iostream>
 #include <utility>
@@ -30,6 +31,7 @@
 #include "DelphesFunctions.h"
 #include "TDirectory.h"
 #include "TFile.h"
+#include <fstream>
 
 using namespace std;
 
@@ -38,9 +40,27 @@ public :
    PhenoAnalysis(TChain&, TFile*, TDirectory* dir[], int nDir);
    ~PhenoAnalysis();
    void crateHistoMasps (int);
-   std::map<unsigned int, TH1*> _hmap_jet_pT;
-   std::map<unsigned int, TH1*> _hmap_jet_eta;
-
+   bool overlapingObjects(double, double, double, double, double);
+   // For Jets
+   std::map<unsigned int, TH1*> _hmap_lead_jet_pT;
+   std::map<unsigned int, TH1*> _hmap_lead_jet_eta;
+   std::map<unsigned int, TH1*> _hmap_lead_jet_phi;
+   std::map<unsigned int, TH1*> _hmap_sublead_jet_pT;
+   std::map<unsigned int, TH1*> _hmap_sublead_jet_eta;
+   std::map<unsigned int, TH1*> _hmap_sublead_jet_phi;
+   std::map<unsigned int, TH1*> _hmap_jet_mjj;
+   std::map<unsigned int, TH1*> _hmap_delta_eta_jj;
+   
+   // For Taus
+   std::map<unsigned int, TH1*> _hmap_tau1_pT;
+   std::map<unsigned int, TH1*> _hmap_tau1_eta;
+   std::map<unsigned int, TH1*> _hmap_tau1_phi;
+   std::map<unsigned int, TH1*> _hmap_tau2_pT;
+   std::map<unsigned int, TH1*> _hmap_tau2_eta;
+   std::map<unsigned int, TH1*> _hmap_tau2_phi;
+   std::map<unsigned int, TH1*> _hmap_tau3_pT;
+   std::map<unsigned int, TH1*> _hmap_tau3_eta;
+   std::map<unsigned int, TH1*> _hmap_tau3_phi;
 private :
 
 };
