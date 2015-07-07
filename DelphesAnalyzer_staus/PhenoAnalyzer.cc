@@ -182,6 +182,7 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
             double jet_met_dphi = normalizedDphi (Jet_leading_vec.Phi() - MET_phi);
             _hmap_jet_met_Dphi[i]->Fill(jet_met_dphi);
           }
+          _hmap_met[i]->Fill(MET);
 	  _hmap_lead_jet_pT[i]->Fill(Jet_leading_vec.Pt());
 	  _hmap_lead_jet_eta[i]->Fill(Jet_leading_vec.Eta());
 	  _hmap_lead_jet_phi[i]->Fill(Jet_leading_vec.Phi());
@@ -215,6 +216,7 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
       _hmap_tau2_eta[d]->Write();
       _hmap_tau2_phi[d]->Write();
       _hmap_jet_met_Dphi[d]->Write();
+      _hmap_met[d]->Write();
     }
   theFile->Close();
   
@@ -259,5 +261,6 @@ void PhenoAnalysis::crateHistoMasps (int directories)
       _hmap_tau2_eta[i]      = new TH1F("tau2_eta",       "#eta(#tau_{2})", 50, -2.5, 2.5);
       _hmap_tau2_phi[i]      = new TH1F("tau2_phi",       "#phi(#tau_{2})", 72, -3.6, 3.6);
       _hmap_jet_met_Dphi[i]  = new TH1F("jet_met_Dphi",   "#Delta #phi(jet, MET)", 72, -3.6, 3.6);
+      _hmap_met[i]           = new TH1F("met",            "E^{miss}_{T}", 1000, 0., 1000.); 
     }
 }

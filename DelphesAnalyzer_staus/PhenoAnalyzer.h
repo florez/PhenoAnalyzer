@@ -58,6 +58,8 @@ public :
    std::map<unsigned int, TH1*> _hmap_n_tau;
    // Topology
    std::map<unsigned int, TH1*> _hmap_jet_met_Dphi;
+   std::map<unsigned int, TH1*> _hmap_met;
+
 private :
 
 };
