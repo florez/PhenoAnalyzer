@@ -41,11 +41,13 @@ public :
    ~PhenoAnalysis();
    void crateHistoMasps (int);
    bool overlapingObjects(double, double, double, double, double);
+   double calculateE(double, double, double);
+   double normalizedDphi(double);
    // For Jets
    std::map<unsigned int, TH1*> _hmap_lead_jet_pT;
    std::map<unsigned int, TH1*> _hmap_lead_jet_eta;
    std::map<unsigned int, TH1*> _hmap_lead_jet_phi;
-   
+   std::map<unsigned int, TH1*> _hmap_n_jets;
    // For Taus
    std::map<unsigned int, TH1*> _hmap_tau1_pT;
    std::map<unsigned int, TH1*> _hmap_tau1_eta;
@@ -53,6 +55,9 @@ public :
    std::map<unsigned int, TH1*> _hmap_tau2_pT;
    std::map<unsigned int, TH1*> _hmap_tau2_eta;
    std::map<unsigned int, TH1*> _hmap_tau2_phi;
+   std::map<unsigned int, TH1*> _hmap_n_tau;
+   // Topology
+   std::map<unsigned int, TH1*> _hmap_jet_met_Dphi;
 private :
 
 };
