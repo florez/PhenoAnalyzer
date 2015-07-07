@@ -89,8 +89,8 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
 	  // For Jets
 	  double jet_highest_pt = 0.;
 	  
-          // We need at least 3 jets, 2 tau jets and the ISR jet. 
-	  if (branchJet->GetEntriesFast() < 3) continue;
+          // We need at least 2 jets, 1 (2) tau jets and the ISR jet.
+	  if (branchJet->GetEntriesFast() < 2) continue;
 	  TLorentzVector jet_i(0., 0., 0., 0.);
           TLorentzVector elec_i(0., 0., 0., 0.);
 	  for (int j = 0; j < branchJet->GetEntriesFast(); j++)
