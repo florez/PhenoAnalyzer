@@ -40,7 +40,8 @@ public :
    PhenoAnalysis(TChain&, TFile*, TDirectory* dir[], int nDir);
    ~PhenoAnalysis();
    void crateHistoMasps (int);
-   bool overlapingObjects(double, double, double, double, double);
+   double calculateE(double, double, double);
+   double normalizedDphi(double);
    // For Jets
    std::map<unsigned int, TH1*> _hmap_lead_jet_pT;
    std::map<unsigned int, TH1*> _hmap_lead_jet_eta;
