@@ -27,8 +27,8 @@ CXX=g++
 MAINFILE=PhenoAnalyzer.cc
 HEADERS==PhenoAnalyzer.h
 TARGETFILE=PhenoAnalyzer
-OTHERFILES=ROOTFunctions.h HepMCFunctions.h DelphesFunctions.h # Other files (checked at the Makefile revision)
-SOURCEFILES= # Other .cpp files (different to the MAINFILE)
+OTHERFILES=ROOTFunctions.h HepMCFunctions.h DelphesFunctions.h mt2_bisect.h# Other files (checked at the Makefile revision)
+SOURCEFILES= mt2_bisect.cpp# Other .cpp files (different to the MAINFILE)
 
 # Directory where HepMC is installed
 HEPMCDIR=/usr/local/HEPMC20609

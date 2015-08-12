@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
   chain.Add(argv[1]);
   TFile * HistoOutputFile = new TFile(argv[2], "RECREATE");
   int nDir = 9;
-  TDirectory *theDirectory[nDir];
+  TDirectory *theDirectory[nDir+1];
   theDirectory[0]  = HistoOutputFile->mkdir("After_tau_pt");
   theDirectory[1]  = HistoOutputFile->mkdir("After_b_jet_veto");
   theDirectory[2]  = HistoOutputFile->mkdir("After_MET");
@@ -26,8 +26,9 @@ int main(int argc, char *argv[]) {
   theDirectory[6]  = HistoOutputFile->mkdir("After_OnlyJets_eta");
   theDirectory[7]  = HistoOutputFile->mkdir("After_Ntau_1_pass_lead_jets");
   theDirectory[8]  = HistoOutputFile->mkdir("After_Ntau_2_pass_lead_jets");
+  theDirectory[9]  = HistoOutputFile->mkdir("Original_Signal");
   PhenoAnalysis BSM_analysis(chain, HistoOutputFile, theDirectory, nDir);
-
+ 
 }
 
 using namespace std;
@@ -67,7 +68,10 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
   TClonesArray *branchMissingET = treeReader->UseBranch("MissingET");  
   
   MissingET *METpointer; 
-  
+  TH1 *histJetPT              = new TH1F("jet_PT",         "j p_{T}", 3000, 0., 1000.);
+  TH1 *histJetEta             = new TH1F("jet_Eta",        "j #eta", 100, -5.0, 5.0);
+  TH1 *histJetPhi             = new TH1F("Jet_Phi",        "j #phi", 72, -3.6, 3.6);
+
   for(Int_t entry = 0; entry < numberOfEntries; ++entry)
     {
 
@@ -86,6 +90,14 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
       int ntau_counter = 0; 
       if(branchJet->GetEntries() > 0)
 	{
+
+           // Take first jet
+            Jet *firstjet = (Jet*) branchJet->At(0);
+      
+           // Plot jet transverse momentum
+            histJetPT->Fill(firstjet->PT);
+            histJetEta->Fill(firstjet->Eta);
+            histJetPhi->Fill(firstjet->Phi);
 	  // For Jets
 	  double jet_highest_pt = 0.;
 	  
@@ -177,6 +189,7 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
       _hmap_n_jets[0]->Fill(njets_counter);
       _hmap_n_tau[0]->Fill(ntau_counter);
       for (int i = 0; i < nDir; i++){
+        
 	if ( pass_cuts[i] == 1){
           if (Jet_leading_vec.Pt() > lead_jet_pt) {
             double jet_met_dphi = normalizedDphi (Jet_leading_vec.Phi() - MET_phi);
@@ -190,11 +203,15 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
 	    _hmap_tau1_pT[i]->Fill(Tau1_vec.Pt());
 	    _hmap_tau1_eta[i]->Fill(Tau1_vec.Eta());
 	    _hmap_tau1_phi[i]->Fill(Tau1_vec.Phi());
+            double tau1_met_dphi = normalizedDphi (Tau1_vec.Phi() - MET_phi);
+            _hmap_tau1_met_Dphi[i]->Fill(tau1_met_dphi);
 	  }
 	  if(Tau2_vec.Pt() > tau2_pt_min){
 	    _hmap_tau2_pT[i]->Fill(Tau2_vec.Pt());
 	    _hmap_tau2_eta[i]->Fill(Tau2_vec.Eta());
 	    _hmap_tau2_phi[i]->Fill(Tau2_vec.Phi());
+            double tau2_met_dphi = normalizedDphi (Tau2_vec.Phi() - MET_phi);
+            _hmap_tau2_met_Dphi[i]->Fill(tau2_met_dphi);
 	  }
 	}
       }  
@@ -217,7 +234,14 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
       _hmap_tau2_phi[d]->Write();
       _hmap_jet_met_Dphi[d]->Write();
       _hmap_met[d]->Write();
+      _hmap_tau1_met_Dphi[d]->Write();
+      _hmap_tau2_met_Dphi[d]->Write();
     }
+     
+     cdDir[9]->cd();
+     histJetPT->Write();
+     histJetEta->Write();
+     histJetPhi->Write();
   theFile->Close();
   
 }
@@ -262,5 +286,7 @@ void PhenoAnalysis::crateHistoMasps (int directories)
       _hmap_tau2_phi[i]      = new TH1F("tau2_phi",       "#phi(#tau_{2})", 72, -3.6, 3.6);
       _hmap_jet_met_Dphi[i]  = new TH1F("jet_met_Dphi",   "#Delta #phi(jet, MET)", 72, -3.6, 3.6);
       _hmap_met[i]           = new TH1F("met",            "E^{miss}_{T}", 1000, 0., 1000.); 
+      _hmap_tau1_met_Dphi[i]  = new TH1F("tau_met_Dphi",   "#Delta #phi(#tau_{1}, MET)", 72, -3.6, 3.6);
+      _hmap_tau2_met_Dphi[i]  = new TH1F("tau_met_Dphi",   "#Delta #phi(#tau_{2}, MET)", 72, -3.6, 3.6);
     }
 }
