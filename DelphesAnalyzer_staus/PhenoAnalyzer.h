@@ -9,8 +9,10 @@
 
 #include "TF2.h"
 #include "TH1F.h"
+#include "TH2F.h"
 #include "TChain.h"
 #include "TEnv.h"
+#include "TRandom.h"
 
 #include <iostream>
 #include <utility>
@@ -43,7 +45,11 @@ public :
    bool overlapingObjects(double, double, double, double, double);
    double calculateE(double, double, double);
    double normalizedDphi(double);
+   bool TauID(TLorentzVector TauCand);
+   TLorentzVector TauSmearing(TLorentzVector TauCand);
+
    // For Jets
+   std::map<unsigned int, TH1*> _hmap_Nevents;
    std::map<unsigned int, TH1*> _hmap_lead_jet_pT;
    std::map<unsigned int, TH1*> _hmap_lead_jet_eta;
    std::map<unsigned int, TH1*> _hmap_lead_jet_phi;
@@ -58,10 +64,14 @@ public :
    std::map<unsigned int, TH1*> _hmap_n_tau;
    // Topology
    std::map<unsigned int, TH1*> _hmap_jet_met_Dphi;
+   std::map<unsigned int, TH1*> _hmap_transverse_mass;
    std::map<unsigned int, TH1*> _hmap_tau1_met_Dphi;
    std::map<unsigned int, TH1*> _hmap_tau2_met_Dphi;
    std::map<unsigned int, TH1*> _hmap_met;
-
+   std::map<unsigned int, TH1*> _hmap_tau1_jet_Dphi;
+   std::map<unsigned int, TH1*> _hmap_efective_mass;
+   //2D plots
+   std::map<unsigned int, TH2*> _hmap_jet_met_metDphi;
 private :
 
 };
