@@ -45,7 +45,10 @@ public :
    bool overlapingObjects(double, double, double, double, double);
    double calculateE(double, double, double);
    double normalizedDphi(double);
+   void Mayor_menorPt(TLorentzVector, TLorentzVector, TLorentzVector, TLorentzVector, TLorentzVector, TLorentzVector, TLorentzVector, TLorentzVector, TLorentzVector*, TLorentzVector*, TLorentzVector*, TLorentzVector*, TLorentzVector*, TLorentzVector*, TLorentzVector*, TLorentzVector*);
+   void TausHadronicos(TLorentzVector, TLorentzVector, TLorentzVector, TLorentzVector, TLorentzVector, TLorentzVector, TLorentzVector, TLorentzVector, TLorentzVector, TLorentzVector, TLorentzVector, TLorentzVector, TLorentzVector*, TLorentzVector*, TLorentzVector*, TLorentzVector*, TLorentzVector*, TLorentzVector*, TLorentzVector*, TLorentzVector*);
    bool TauID(TLorentzVector TauCand);
+   bool TauIDJet(TLorentzVector jet);
    TLorentzVector TauSmearing(TLorentzVector TauCand);
 
    // For Jets
