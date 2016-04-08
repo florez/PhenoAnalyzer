@@ -66,7 +66,7 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
   TEnv *params = new TEnv ("config_file");
   params->ReadFile ("config.in", kEnvChange);
   
-  int BGQCD            = params->GetValue ("BGQCD", 0);
+  int BGQCD               = params->GetValue ("BGQCD", 0);
   double lead_jet_pt      = params->GetValue ("lead_jet_pt", 100.);
   double jet_eta_max      = params->GetValue ("jet_eta_max", 5.0);
   double tau1_pt_min      = params->GetValue ("tau1_pt_min", 10.);
@@ -196,59 +196,47 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
 		Muon *muon = (Muon*) branchMuon->At(muo);
 		if ((muon->PT > 10.) && (abs(muon->Eta) < 2.5)){N_muons++;}            
 	      }
-
+	      
               int index_tau1=0;
               int index_tau2=0;
               int index_tau3=0;
-             
-             //////Escogemos taus para el BG de QCD///////////////////
-             if(BGQCD == 1){
-             for (int j = 0; j < branchJet->GetEntriesFast(); j++) {
+	      
+	      //////Jet-tau fake rate///////////////////
+	      
+	      bool filled_tau1_vec = false;
+	      bool filled_tau2_vec = false;
+	      bool filled_tau3_vec = false;
+	      bool filled_tau4_vec = false;
+	      
+	      for (int j = 0; j < branchJet->GetEntriesFast(); j++) {
                 bool passed_jet_tau = false;
                 Jet *jet = (Jet*) branchJet->At(j);
                 double jet_energy = calculateE(jet->Eta, jet->PT, jet->Mass);
                 jet_i.SetPtEtaPhiE(jet->PT, jet->Eta, jet->Phi, jet_energy);
                 passed_jet_tau = TauIDJet(jet_i);
                 //cout << "passed_jet_tau "<<passed_jet_tau<<endl;
-                if(passed_jet_tau == true){
-                        Tau1Had_vec.SetPtEtaPhiE(jet_i.Pt(), jet_i.Eta(), jet_i.Phi(), jet_i.E());
-                        index_tau1=j;
-                      }
-                    }
-                for (int l = 0; l < branchJet->GetEntriesFast(); l++) {
-                bool passed_jet_tau = false;
-                Jet *jet = (Jet*) branchJet->At(l);
-                double jet_energy = calculateE(jet->Eta, jet->PT, jet->Mass);
-                jet_i.SetPtEtaPhiE(jet->PT, jet->Eta, jet->Phi, jet_energy);
-                passed_jet_tau = TauIDJet(jet_i);
-                if((passed_jet_tau == true) && (l != index_tau1)){
-                   Tau2Had_vec.SetPtEtaPhiE(jet_i.Pt(), jet_i.Eta(), jet_i.Phi(), jet_i.E());
-                   index_tau2=l; 
-                 }
+                if((passed_jet_tau == true) && (filled_tau1_vec == false)){
+		  Tau1Had_vec.SetPtEtaPhiE(jet_i.Pt(), jet_i.Eta(), jet_i.Phi(), jet_i.E());
+		  filled_tau1_vec = true;
+		  continue;
                 }
-                for (int l = 0; l < branchJet->GetEntriesFast(); l++) {
-                bool passed_jet_tau = false;
-                Jet *jet = (Jet*) branchJet->At(l);
-                double jet_energy = calculateE(jet->Eta, jet->PT, jet->Mass);
-                jet_i.SetPtEtaPhiE(jet->PT, jet->Eta, jet->Phi, jet_energy);
-                passed_jet_tau = TauIDJet(jet_i);
-                if((passed_jet_tau == true) && (l != index_tau1) && (l != index_tau2)){
-                   Tau3Had_vec.SetPtEtaPhiE(jet_i.Pt(), jet_i.Eta(), jet_i.Phi(), jet_i.E());
-                   index_tau3=l;
-                 }
+                if((passed_jet_tau == true) && (filled_tau2_vec == false) && (filled_tau1_vec == true)){
+		  Tau2Had_vec.SetPtEtaPhiE(jet_i.Pt(), jet_i.Eta(), jet_i.Phi(), jet_i.E());
+		  filled_tau2_vec = true;
+		  continue;
                 }
-                for (int l = 0; l < branchJet->GetEntriesFast(); l++) {
-                bool passed_jet_tau = false;
-                Jet *jet = (Jet*) branchJet->At(l);
-                double jet_energy = calculateE(jet->Eta, jet->PT, jet->Mass);
-                jet_i.SetPtEtaPhiE(jet->PT, jet->Eta, jet->Phi, jet_energy);
-                passed_jet_tau = TauIDJet(jet_i);
-                if((passed_jet_tau == true) && (l != index_tau1) && (l != index_tau2) && (l != index_tau3)){
-                   Tau4Had_vec.SetPtEtaPhiE(jet_i.Pt(), jet_i.Eta(), jet_i.Phi(), jet_i.E());
-                 }
-                }                
-               }//////////TLV para taus en BGQCD///
-
+                if((passed_jet_tau == true) && (filled_tau3_vec == false) && (filled_tau1_vec == true) && (filled_tau2_vec == true)){
+		  Tau3Had_vec.SetPtEtaPhiE(jet_i.Pt(), jet_i.Eta(), jet_i.Phi(), jet_i.E());
+		  filled_tau3_vec = true;
+		  continue;
+                }
+                if((passed_jet_tau == true) && (filled_tau4_vec == false) && (filled_tau1_vec == true) && (filled_tau2_vec == true) && 
+                   (filled_tau3_vec == true)){
+		  Tau4Had_vec.SetPtEtaPhiE(jet_i.Pt(), jet_i.Eta(), jet_i.Phi(), jet_i.E());
+		  filled_tau4_vec = true;
+                }
+              }
+	      
               ////////////////////////////////////
 	      for (int j = 0; j < branchJet->GetEntriesFast(); j++)
 		{
@@ -275,8 +263,22 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
 		  if ((jet->PT > b_jet_pt_min) && (jet->BTag == 1)){is_b_jet = true;}
 		  if ((jet->PT > jet_min_pt) && (!is_jet_elec_overlap) && ( jet->TauTag == 0 ) && (jet->BTag == 0)){
 		    njets_counter++;
-		    jet_min_pt = jet->PT; 
+		    jet_min_pt = jet->PT;
+                    Jet_leading_vec.SetPtEtaPhiE(jet->PT, jet->Eta, jet->Phi, jet_energy); 
 		    Jet_leading_vec.SetPtEtaPhiE(jet->PT, jet->Eta, jet->Phi, jet_energy);
+		    if ((Tau1Had_vec.Pt() > 2.0) && (Jet_leading_vec.DeltaR(Tau1Had_vec) < 0.3)){
+		      Jet_leading_vec.SetPtEtaPhiE(0., 0., 0., 0.);
+		    }
+		    if ((Tau2Had_vec.Pt() > 2.0) && (Jet_leading_vec.DeltaR(Tau2Had_vec) < 0.3)){
+		      Jet_leading_vec.SetPtEtaPhiE(0., 0., 0., 0.);
+		    }
+		    if ((Tau3Had_vec.Pt() > 2.0) && (Jet_leading_vec.DeltaR(Tau3Had_vec) < 0.3)){
+		      Jet_leading_vec.SetPtEtaPhiE(0., 0., 0., 0.);
+		    }
+		    if ((Tau4Had_vec.Pt() > 2.0) && (Jet_leading_vec.DeltaR(Tau4Had_vec) < 0.3)){
+		      Jet_leading_vec.SetPtEtaPhiE(0., 0., 0., 0.); 
+		    }
+                    
 		  }
 		  // }
 		}
@@ -306,20 +308,19 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
               // Loop over GenTau particles and emulate the identification and 
               // reconstruction of hadronic taus. 
 	      
-                if(BGQCD == 0){//Cuando no corremos sobre BG de QCD
-                for(int tau_i = 0; tau_i < branchGenParticle->GetEntriesFast(); tau_i++){
-                // Look for the particle PDGID
+	      for(int tau_i = 0; tau_i < branchGenParticle->GetEntriesFast(); tau_i++){
+		// Look for the particle PDGID
 		GenParticle *tau_mother = (GenParticle*) branchGenParticle->At(tau_i);
-                //cout <<tau_mother->PID<<", ";
-                if(((abs(tau_mother->PID) == 23) || (abs(tau_mother->PID) == 24) || (abs(tau_mother->PID) == 15) ||  
+		//cout <<tau_mother->PID<<", ";
+		if(((abs(tau_mother->PID) == 23) || (abs(tau_mother->PID) == 24) || (abs(tau_mother->PID) == 15) ||  
 		    (abs(tau_mother->PID) == 1000015) || (abs(tau_mother->PID) == 1000023)) && (tau_mother->Status == 2) ){
-                  // Search for the daughters
+		  // Search for the daughters
 		  GenParticle *daughter_1 = (GenParticle*) branchGenParticle->At(tau_mother->D1);
 		  GenParticle *daughter_2 = (GenParticle*) branchGenParticle->At(tau_mother->D2);
 		  //cout << "hija 1: "<< daughter_1->PID<<"  Hija 2: "<<daughter_2->PID<<endl;
 		  // Find tau candidates that come from D1               
 		  if((abs(daughter_1->PID) == 15)){
-                    // Energy is not stored in the Delphes ntuple, so we calculate it.
+		    // Energy is not stored in the Delphes ntuple, so we calculate it.
 		    double tau1cand_energy = calculateE(daughter_1->Eta, daughter_1->PT, daughter_1->Mass);
                     // Need to look at the tau daughters in order to identify 
                     // the associated neutrinos
@@ -842,7 +843,6 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
 	      if(NeuTau4Had_vec.Pt()>0){
 		Tau4Had_vec.SetPtEtaPhiE(abs(Tau4Had_vec.Pt()-NeuTau4Had_vec.Pt()), Tau4Had_vec.Eta(), Tau4Had_vec.Phi(), Tau4Had_vec.E());
 	      }
-	     }//Cierra BGQCD=0 
               
 	/*	cout << "--------------Taus Hadronicos una vez se resta el momento-----------"<<endl;
 		cout <<"Tau1Had_vec.Pt "<<Tau1Had_vec.Pt()<<" Tau1Had_vec.Eta() "<<Tau1Had_vec.Eta()<<endl;
@@ -1362,166 +1362,69 @@ void PhenoAnalysis::TausHadronicos(TLorentzVector Tau1cand, TLorentzVector Tau2c
   TLorentzVector Tau_nulo(0., 0., 0., 0.);
   
   if((Tau1cand_isLep == false) && (Tau2cand_isLep == true) && (Tau3cand_isLep == true) && (Tau4cand_isLep == true)){
-    *Tau1Had = Tau1cand;
-    *Tau2Had = Tau_nulo;
-    *Tau3Had = Tau_nulo; 
-    *Tau4Had = Tau_nulo;
-    *NeuTau1Had = NeuTau1vec;
-    *NeuTau2Had = Tau_nulo;
-    *NeuTau3Had = Tau_nulo; 
-    *NeuTau4Had = Tau_nulo;   
+    if (Tau1cand.Pt() > Tau1Had->Pt()){*Tau1Had = Tau1cand; *NeuTau1Had = NeuTau1vec;}
   }
   if((Tau1cand_isLep == true) && (Tau2cand_isLep == false) && (Tau3cand_isLep == true) && (Tau4cand_isLep == true)){
-    *Tau1Had = Tau2cand;
-    *Tau2Had = Tau_nulo;
-    *Tau3Had = Tau_nulo; 
-    *Tau4Had = Tau_nulo;
-    *NeuTau1Had = NeuTau2vec;
-    *NeuTau2Had = Tau_nulo;
-    *NeuTau3Had = Tau_nulo; 
-    *NeuTau4Had = Tau_nulo;     
+    if (Tau2cand.Pt() > Tau1Had->Pt()){*Tau1Had = Tau2cand; *NeuTau1Had = NeuTau2vec;}
   }
   if((Tau1cand_isLep == true) && (Tau2cand_isLep == true) && (Tau3cand_isLep == false) && (Tau4cand_isLep == true)){
-    *Tau1Had = Tau3cand;
-    *Tau2Had = Tau_nulo;
-    *Tau3Had = Tau_nulo; 
-    *Tau4Had = Tau_nulo;
-    *NeuTau1Had = NeuTau3vec;
-    *NeuTau2Had = Tau_nulo;
-    *NeuTau3Had = Tau_nulo; 
-    *NeuTau4Had = Tau_nulo;     
+    if (Tau3cand.Pt() > Tau1Had->Pt()){*Tau1Had = Tau3cand; *NeuTau1Had = NeuTau3vec;} 
   }
   if((Tau1cand_isLep == true) && (Tau2cand_isLep == true) && (Tau3cand_isLep == true) && (Tau4cand_isLep == false)){
-    *Tau1Had = Tau4cand;
-    *Tau2Had = Tau_nulo;
-    *Tau3Had = Tau_nulo; 
-    *Tau4Had = Tau_nulo;
-    *NeuTau1Had = NeuTau4vec;
-    *NeuTau2Had = Tau_nulo;
-    *NeuTau3Had = Tau_nulo; 
-    *NeuTau4Had = Tau_nulo;     
+    if (Tau4cand.Pt() > Tau1Had->Pt()){*Tau1Had = Tau4cand; *NeuTau1Had = NeuTau4vec;}
   }   
   ////////////////////DOS TAUS HADRONICOS ///////////////////               
   if((Tau1cand_isLep == false) && (Tau2cand_isLep == false) && (Tau3cand_isLep == true) && (Tau4cand_isLep == true)){
-    *Tau1Had = Tau1cand;
-    *Tau2Had = Tau2cand;
-    *Tau3Had = Tau_nulo; 
-    *Tau4Had = Tau_nulo;
-    *NeuTau1Had = NeuTau1vec;
-    *NeuTau2Had = NeuTau2vec;
-    *NeuTau3Had = Tau_nulo; 
-    *NeuTau4Had = Tau_nulo;     
+    if (Tau1cand.Pt() > Tau1Had->Pt()){*Tau1Had = Tau1cand; *NeuTau1Had = NeuTau1vec;}
+    if (Tau2cand.Pt() > Tau2Had->Pt()){*Tau2Had = Tau2cand; *NeuTau2Had = NeuTau2vec;}
   }
   if((Tau1cand_isLep == false) && (Tau2cand_isLep == true) && (Tau3cand_isLep == false) && (Tau4cand_isLep == true)){
-    *Tau1Had = Tau1cand;
-    *Tau2Had = Tau3cand;
-    *Tau3Had = Tau_nulo; 
-    *Tau4Had = Tau_nulo;
-    *NeuTau1Had = NeuTau1vec;
-    *NeuTau2Had = NeuTau3vec;
-    *NeuTau3Had = Tau_nulo; 
-    *NeuTau4Had = Tau_nulo;     
+    if (Tau1cand.Pt() > Tau1Had->Pt()){*Tau1Had = Tau1cand; *NeuTau1Had = NeuTau1vec;}
+    if (Tau3cand.Pt() > Tau2Had->Pt()){*Tau2Had = Tau3cand; *NeuTau2Had = NeuTau3vec;}
   }  
   if((Tau1cand_isLep == false) && (Tau2cand_isLep == true) && (Tau3cand_isLep == true) && (Tau4cand_isLep == false)){
-    *Tau1Had = Tau1cand;
-    *Tau2Had = Tau4cand;
-    *Tau3Had = Tau_nulo; 
-    *Tau4Had = Tau_nulo;
-    *NeuTau1Had = NeuTau1vec;
-    *NeuTau2Had = NeuTau4vec;
-    *NeuTau3Had = Tau_nulo; 
-    *NeuTau4Had = Tau_nulo;     
+    if (Tau1cand.Pt() > Tau1Had->Pt()){*Tau1Had = Tau1cand; *NeuTau1Had = NeuTau1vec;}
+    if (Tau4cand.Pt() > Tau2Had->Pt()){*Tau2Had = Tau4cand; *NeuTau2Had = NeuTau4vec;}
   }
   if((Tau1cand_isLep == true) && (Tau2cand_isLep == false) && (Tau3cand_isLep == false) && (Tau4cand_isLep == true)){
-    *Tau1Had = Tau2cand;
-    *Tau2Had = Tau3cand;
-    *Tau3Had = Tau_nulo; 
-    *Tau4Had = Tau_nulo;
-    *NeuTau1Had = NeuTau2vec;
-    *NeuTau2Had = NeuTau3vec;
-    *NeuTau3Had = Tau_nulo; 
-    *NeuTau4Had = Tau_nulo;     
+    if (Tau2cand.Pt() > Tau1Had->Pt()){*Tau1Had = Tau2cand; *NeuTau1Had = NeuTau2vec;}
+    if (Tau3cand.Pt() > Tau2Had->Pt()){*Tau2Had = Tau3cand; *NeuTau2Had = NeuTau3vec;}
   }
   if((Tau1cand_isLep == true) && (Tau2cand_isLep == false) && (Tau3cand_isLep == true) && (Tau4cand_isLep == false)){
-    *Tau1Had = Tau2cand;
-    *Tau2Had = Tau4cand;
-    *Tau3Had = Tau_nulo; 
-    *Tau4Had = Tau_nulo;
-    *NeuTau1Had = NeuTau2vec;
-    *NeuTau2Had = NeuTau4vec;
-    *NeuTau3Had = Tau_nulo; 
-    *NeuTau4Had = Tau_nulo;     
+    if (Tau2cand.Pt() > Tau1Had->Pt()){*Tau1Had = Tau2cand; *NeuTau1Had = NeuTau2vec;}
+    if (Tau4cand.Pt() > Tau2Had->Pt()){*Tau2Had = Tau4cand; *NeuTau2Had = NeuTau4vec;}
   }
   if((Tau1cand_isLep == true) && (Tau2cand_isLep == true) && (Tau3cand_isLep == false) && (Tau4cand_isLep == false)){
-    *Tau1Had = Tau3cand;
-    *Tau2Had = Tau4cand;
-    *Tau3Had = Tau_nulo; 
-    *Tau4Had = Tau_nulo;
-    *NeuTau1Had = NeuTau3vec;
-    *NeuTau2Had = NeuTau4vec;
-    *NeuTau3Had = Tau_nulo; 
-    *NeuTau4Had = Tau_nulo;     
+    if (Tau3cand.Pt() > Tau1Had->Pt()){*Tau1Had = Tau3cand; *NeuTau1Had = NeuTau3vec;}
+    if (Tau4cand.Pt() > Tau2Had->Pt()){*Tau2Had = Tau4cand; *NeuTau2Had = NeuTau4vec;}
   }    
   ///////////////////TRES TAUS HADRONICOS///////////////////////////////
   if((Tau1cand_isLep == false) && (Tau2cand_isLep == false) && (Tau3cand_isLep == false) && (Tau4cand_isLep == true)){
-    *Tau1Had = Tau1cand;
-    *Tau2Had = Tau2cand;
-    *Tau3Had = Tau3cand; 
-    *Tau4Had = Tau_nulo;
-    *NeuTau1Had = NeuTau1vec;
-    *NeuTau2Had = NeuTau2vec;
-    *NeuTau3Had = NeuTau2vec; 
-    *NeuTau4Had = Tau_nulo; 
+    if (Tau1cand.Pt() > Tau1Had->Pt()){*Tau1Had = Tau1cand; *NeuTau1Had = NeuTau1vec;}
+    if (Tau2cand.Pt() > Tau2Had->Pt()){*Tau2Had = Tau2cand; *NeuTau2Had = NeuTau2vec;}
+    if (Tau3cand.Pt() > Tau3Had->Pt()){*Tau3Had = Tau3cand; *NeuTau3Had = NeuTau3vec;}
   }
   if((Tau1cand_isLep == false) && (Tau2cand_isLep == false) && (Tau3cand_isLep == true) && (Tau4cand_isLep == false)){
-    *Tau1Had = Tau1cand;
-    *Tau2Had = Tau2cand;
-    *Tau3Had = Tau4cand; 
-    *Tau4Had = Tau_nulo;
-    *NeuTau1Had = NeuTau1vec;
-    *NeuTau2Had = NeuTau2vec;
-    *NeuTau3Had = NeuTau4vec; 
-    *NeuTau4Had = Tau_nulo;
-  }
-  if((Tau1cand_isLep == false) && (Tau2cand_isLep == false) && (Tau3cand_isLep == true) && (Tau4cand_isLep == false)){
-    *Tau1Had = Tau1cand;
-    *Tau2Had = Tau2cand;
-    *Tau3Had = Tau4cand; 
-    *Tau4Had = Tau_nulo;
-    *NeuTau1Had = NeuTau1vec;
-    *NeuTau2Had = NeuTau2vec;
-    *NeuTau3Had = NeuTau4vec; 
-    *NeuTau4Had = Tau_nulo;
+    if (Tau1cand.Pt() > Tau1Had->Pt()){*Tau1Had = Tau1cand; *NeuTau1Had = NeuTau1vec;}
+    if (Tau2cand.Pt() > Tau2Had->Pt()){*Tau2Had = Tau2cand; *NeuTau2Had = NeuTau2vec;}
+    if (Tau4cand.Pt() > Tau3Had->Pt()){*Tau3Had = Tau4cand; *NeuTau3Had = NeuTau4vec;}
   }
   if((Tau1cand_isLep == false) && (Tau2cand_isLep == true) && (Tau3cand_isLep == false) && (Tau4cand_isLep == false)){
-    *Tau1Had = Tau1cand;
-    *Tau2Had = Tau3cand;
-    *Tau3Had = Tau4cand; 
-    *Tau4Had = Tau_nulo;
-    *NeuTau1Had = NeuTau1vec;
-    *NeuTau2Had = NeuTau3vec;
-    *NeuTau3Had = NeuTau4vec; 
-    *NeuTau4Had = Tau_nulo;
+    if (Tau1cand.Pt() > Tau1Had->Pt()){*Tau1Had = Tau1cand; *NeuTau1Had = NeuTau1vec;}
+    if (Tau3cand.Pt() > Tau2Had->Pt()){*Tau2Had = Tau3cand; *NeuTau2Had = NeuTau3vec;}
+    if (Tau4cand.Pt() > Tau3Had->Pt()){*Tau3Had = Tau4cand; *NeuTau3Had = NeuTau4vec;}
   }
   if((Tau1cand_isLep == true) && (Tau2cand_isLep == false) && (Tau3cand_isLep == false) && (Tau4cand_isLep == false)){
-    *Tau1Had = Tau2cand;
-    *Tau2Had = Tau3cand;
-    *Tau3Had = Tau4cand; 
-    *Tau4Had = Tau_nulo;
-    *NeuTau1Had = NeuTau2vec;
-    *NeuTau2Had = NeuTau3vec;
-    *NeuTau3Had = NeuTau4vec; 
-    *NeuTau4Had = Tau_nulo;
+    if (Tau2cand.Pt() > Tau1Had->Pt()){*Tau1Had = Tau2cand; *NeuTau1Had = NeuTau2vec;}
+    if (Tau3cand.Pt() > Tau2Had->Pt()){*Tau2Had = Tau3cand; *NeuTau2Had = NeuTau3vec;}
+    if (Tau4cand.Pt() > Tau3Had->Pt()){*Tau3Had = Tau4cand; *NeuTau3Had = NeuTau4vec;}
+    
   }
   if((Tau1cand_isLep == false) && (Tau2cand_isLep == false) && (Tau3cand_isLep == false) && (Tau4cand_isLep == false)){
-    *Tau1Had = Tau1cand;
-    *Tau2Had = Tau2cand;
-    *Tau3Had = Tau3cand; 
-    *Tau4Had = Tau4cand;
-    *NeuTau1Had = NeuTau2vec;
-    *NeuTau2Had = NeuTau3vec;
-    *NeuTau3Had = NeuTau4vec; 
-    *NeuTau4Had = NeuTau4vec;
+    if (Tau1cand.Pt() > Tau1Had->Pt()){*Tau1Had = Tau1cand; *NeuTau1Had = NeuTau1vec;}
+    if (Tau2cand.Pt() > Tau2Had->Pt()){*Tau2Had = Tau2cand; *NeuTau2Had = NeuTau2vec;}
+    if (Tau3cand.Pt() > Tau3Had->Pt()){*Tau3Had = Tau3cand; *NeuTau3Had = NeuTau3vec;}
+    if (Tau4cand.Pt() > Tau4Had->Pt()){*Tau4Had = Tau4cand; *NeuTau4Had = NeuTau4vec;}
   }
   //////////////////////////////////////////////////////////////////////
   
