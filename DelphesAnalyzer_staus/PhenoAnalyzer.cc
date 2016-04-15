@@ -74,6 +74,7 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
   double tau_eta_max      = params->GetValue ("tau_eta_max", 2.1);
   double b_jet_pt_min     = params->GetValue ("b_jet_pt_min", 20.0);
   double DR_jet_elec_max  = params->GetValue ("DR_jet_elec_max", 0.3);
+  double DR_taui_tauj_min = params->GetValue ("DR_taui_tauj_min", 0.1);
   double met_min          = params->GetValue ("met_min", 10.);
   double deltajetmetphi   = params->GetValue ("deltajetmetphi",1.5);
   double transversemassmin = params->GetValue ("transversemassmin",0.);
@@ -170,7 +171,6 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
       double MET_phi = METpointer->Phi;
       int njets_counter = 0;
       int ntau_counter = 0; 
-      pass_cuts[0] = 1;
       int countertau=0;
       //bool passed_jet_tau = false;
       //bool fill_tau1 = false;
@@ -179,10 +179,10 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
       if(branchJet->GetEntries() > 0)
 	{
 	  // Take first jet
-	  Jet *firstjet = (Jet*) branchJet->At(0);
+	  //Jet *firstjet = (Jet*) branchJet->At(0);
 	  // Plot jet transverse momentum
 	  // For Jets
-	  double jet_min_pt = 20.;
+	  double jet_min_pt = 10.;
 	  
 	  // We need at least 2 jets, 1 (2) tau jets and the ISR jet.
 	  
@@ -240,7 +240,7 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
               ////////////////////////////////////
 	      for (int j = 0; j < branchJet->GetEntriesFast(); j++)
 		{
-		  bool passed_jet_tau = false;
+		  //bool passed_jet_tau = false;
                   
                   bool is_jet_elec_overlap = false;
 		  Jet *jet = (Jet*) branchJet->At(j);
@@ -259,27 +259,47 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
 		    }   
 		    if ((elec->PT > 10.) && (abs(elec->Eta)) < 2.5){N_elec++;}
 		  }         
-		  
-		  if ((jet->PT > b_jet_pt_min) && (jet->BTag == 1)){is_b_jet = true;}
+		  if(!is_jet_elec_overlap){
+                    if ((jet->PT > b_jet_pt_min) && (jet->BTag == 1)){is_b_jet = true;}
+                    if (jet->TauTag == 0){
+                      if(jet->PT > jet_min_pt){
+                      Jet_leading_vec.SetPtEtaPhiE(jet->PT, jet->Eta, jet->Phi, jet_energy);
+                      jet_min_pt = jet->PT;
+                      njets_counter++;
+                    /*  if ((Tau1Had_vec.Pt() > 5.0) && (Jet_leading_vec.DeltaR(Tau1Had_vec) < 0.2)){
+                      Jet_leading_vec.SetPtEtaPhiE(0., 0., 0., 0.);
+                    }
+                    if ((Tau2Had_vec.Pt() > 5.0) && (Jet_leading_vec.DeltaR(Tau2Had_vec) < 0.2)){
+                      Jet_leading_vec.SetPtEtaPhiE(0., 0., 0., 0.);
+                    }
+                    if ((Tau3Had_vec.Pt() > 5.0) && (Jet_leading_vec.DeltaR(Tau3Had_vec) < 0.2)){
+                      Jet_leading_vec.SetPtEtaPhiE(0., 0., 0., 0.);
+                    }
+                    if ((Tau4Had_vec.Pt() > 5.0) && (Jet_leading_vec.DeltaR(Tau4Had_vec) < 0.2)){
+                      Jet_leading_vec.SetPtEtaPhiE(0., 0., 0., 0.); 
+                      }*/
+                     }
+                    }
+                  }
+		  /*if ((jet->PT > b_jet_pt_min) && (jet->BTag == 1)){is_b_jet = true;}
 		  if ((jet->PT > jet_min_pt) && (!is_jet_elec_overlap) && ( jet->TauTag == 0 ) && (jet->BTag == 0)){
 		    njets_counter++;
 		    jet_min_pt = jet->PT;
                     Jet_leading_vec.SetPtEtaPhiE(jet->PT, jet->Eta, jet->Phi, jet_energy); 
-		    Jet_leading_vec.SetPtEtaPhiE(jet->PT, jet->Eta, jet->Phi, jet_energy);
-		    if ((Tau1Had_vec.Pt() > 2.0) && (Jet_leading_vec.DeltaR(Tau1Had_vec) < 0.3)){
+		    if ((Tau1Had_vec.Pt() > 5.0) && (Jet_leading_vec.DeltaR(Tau1Had_vec) < 0.3)){
 		      Jet_leading_vec.SetPtEtaPhiE(0., 0., 0., 0.);
 		    }
-		    if ((Tau2Had_vec.Pt() > 2.0) && (Jet_leading_vec.DeltaR(Tau2Had_vec) < 0.3)){
+		    if ((Tau2Had_vec.Pt() > 5.0) && (Jet_leading_vec.DeltaR(Tau2Had_vec) < 0.3)){
 		      Jet_leading_vec.SetPtEtaPhiE(0., 0., 0., 0.);
 		    }
-		    if ((Tau3Had_vec.Pt() > 2.0) && (Jet_leading_vec.DeltaR(Tau3Had_vec) < 0.3)){
+		    if ((Tau3Had_vec.Pt() > 5.0) && (Jet_leading_vec.DeltaR(Tau3Had_vec) < 0.3)){
 		      Jet_leading_vec.SetPtEtaPhiE(0., 0., 0., 0.);
 		    }
-		    if ((Tau4Had_vec.Pt() > 2.0) && (Jet_leading_vec.DeltaR(Tau4Had_vec) < 0.3)){
+		    if ((Tau4Had_vec.Pt() > 5.0) && (Jet_leading_vec.DeltaR(Tau4Had_vec) < 0.3)){
 		      Jet_leading_vec.SetPtEtaPhiE(0., 0., 0., 0.); 
 		    }
                     
-		  }
+		  }*/
 		  // }
 		}
 	      // check if there is at least one jet tagged as a tau
@@ -346,8 +366,8 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
                       // Fill the first TLorentz vector. This tau might be leptonic or hadronic 
                       // Later in the code we determine its nature.
 		      Tau1_1cand_vec.SetPtEtaPhiE(daughter_1->PT, daughter_1->Eta, daughter_1->Phi, tau1cand_energy);
-                      if((Tau1_1cand_vec.DeltaR(Tau2_1cand_vec) < 0.2) || (Tau1_1cand_vec.DeltaR(Tau2_2cand_vec) < 0.2) ||
-                         (Tau1_1cand_vec.DeltaR(Tau2_3cand_vec) < 0.2) || (Tau1_1cand_vec.DeltaR(Tau2_4cand_vec) < 0.2)){
+                      if((Tau1_1cand_vec.DeltaR(Tau2_1cand_vec) < DR_taui_tauj_min) || (Tau1_1cand_vec.DeltaR(Tau2_2cand_vec) < DR_taui_tauj_min) ||
+                         (Tau1_1cand_vec.DeltaR(Tau2_3cand_vec) < DR_taui_tauj_min) || (Tau1_1cand_vec.DeltaR(Tau2_4cand_vec) < DR_taui_tauj_min)){
 			Tau1_1cand_vec.SetPtEtaPhiE(0., 0., 0., 0.);
 			tau1 = false;
                       }
@@ -357,15 +377,15 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
                       
 		      if((abs(daughther1_Tau1cand->PID)==16) && (daughther1_Tau1cand->Status == 1)){
 			Neu_Tau1_1cand_vec.SetPtEtaPhiE(daughther1_Tau1cand->PT, daughther1_Tau1cand->Eta, daughther1_Tau1cand->Phi, Neu_tau1_energy_d1);
-			if((Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_1cand_vec) < 0.2) || (Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_2cand_vec) < 0.2) ||
-			   (Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_3cand_vec) < 0.2) || (Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_4cand_vec) < 0.2)){
+			if((Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_1cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_2cand_vec) < DR_taui_tauj_min) ||
+			   (Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_3cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_4cand_vec) < DR_taui_tauj_min)){
                           Neu_Tau1_1cand_vec.SetPtEtaPhiE(0., 0., 0., 0.);
 			}  
 		      }
 		      if((abs(daughther2_Tau1cand->PID)==16) && (daughther2_Tau1cand->Status == 1)){ 
                         Neu_Tau1_1cand_vec.SetPtEtaPhiE(daughther2_Tau1cand->PT, daughther2_Tau1cand->Eta, daughther2_Tau1cand->Phi, Neu_tau1_energy_d2);                       
-                        if((Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_1cand_vec) < 0.2) || (Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_2cand_vec) < 0.2) ||
-			   (Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_3cand_vec) < 0.2) || (Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_4cand_vec) < 0.2)){
+                        if((Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_1cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_2cand_vec) < DR_taui_tauj_min) ||
+			   (Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_3cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_4cand_vec) < DR_taui_tauj_min)){
                           Neu_Tau1_1cand_vec.SetPtEtaPhiE(0., 0., 0., 0.);
 			}  
 		      }
@@ -375,26 +395,26 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
 		    if((tau1 == true) && (tau1_2 == false) && (tau1_3 == false)){
 		      Tau1_2cand_vec.SetPtEtaPhiE(daughter_1->PT, daughter_1->Eta, daughter_1->Phi, tau1cand_energy);
                       tau1_2 = true;
-                      if((Tau1_2cand_vec.DeltaR(Tau1_1cand_vec) < 0.2) || (Tau1_2cand_vec.DeltaR(Tau2_1cand_vec) < 0.2) || 
-                         (Tau1_2cand_vec.DeltaR(Tau2_2cand_vec) < 0.2) || (Tau1_2cand_vec.DeltaR(Tau2_3cand_vec) < 0.2) || 
-                         (Tau1_2cand_vec.DeltaR(Tau2_4cand_vec) < 0.2)){
+                      if((Tau1_2cand_vec.DeltaR(Tau1_1cand_vec) < DR_taui_tauj_min) || (Tau1_2cand_vec.DeltaR(Tau2_1cand_vec) < DR_taui_tauj_min) || 
+                         (Tau1_2cand_vec.DeltaR(Tau2_2cand_vec) < DR_taui_tauj_min) || (Tau1_2cand_vec.DeltaR(Tau2_3cand_vec) < DR_taui_tauj_min) || 
+                         (Tau1_2cand_vec.DeltaR(Tau2_4cand_vec) < DR_taui_tauj_min)){
 			Tau1_2cand_vec.SetPtEtaPhiE(0., 0., 0., 0.);
 			tau1_2 = false;
                       }
 		      
 		      if((abs(daughther1_Tau1cand->PID)==16) && (daughther1_Tau1cand->Status == 1)){
                         Neu_Tau1_2cand_vec.SetPtEtaPhiE(daughther1_Tau1cand->PT, daughther1_Tau1cand->Eta, daughther1_Tau1cand->Phi, Neu_tau1_energy_d1);
-                        if((Neu_Tau1_2cand_vec.DeltaR(Neu_Tau1_1cand_vec) < 0.2) || (Neu_Tau1_2cand_vec.DeltaR(Neu_Tau2_1cand_vec) < 0.2) ||
-			   (Neu_Tau1_2cand_vec.DeltaR(Neu_Tau2_2cand_vec) < 0.2) || (Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_3cand_vec) < 0.2) ||
-			   (Neu_Tau1_2cand_vec.DeltaR(Neu_Tau2_4cand_vec) < 0.2)){
+                        if((Neu_Tau1_2cand_vec.DeltaR(Neu_Tau1_1cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_2cand_vec.DeltaR(Neu_Tau2_1cand_vec) < DR_taui_tauj_min) ||
+			   (Neu_Tau1_2cand_vec.DeltaR(Neu_Tau2_2cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_3cand_vec) < DR_taui_tauj_min) ||
+			   (Neu_Tau1_2cand_vec.DeltaR(Neu_Tau2_4cand_vec) < DR_taui_tauj_min)){
 			  Neu_Tau1_2cand_vec.SetPtEtaPhiE(0., 0., 0., 0.);
 			}
 		      }
 		      if((abs(daughther2_Tau1cand->PID)==16) && (daughther2_Tau1cand->Status == 1)){
 			Neu_Tau1_2cand_vec.SetPtEtaPhiE(daughther2_Tau1cand->PT, daughther2_Tau1cand->Eta, daughther2_Tau1cand->Phi, Neu_tau1_energy_d2);
-		        if((Neu_Tau1_2cand_vec.DeltaR(Neu_Tau1_1cand_vec) < 0.2) || (Neu_Tau1_2cand_vec.DeltaR(Neu_Tau2_1cand_vec) < 0.2) ||
-			   (Neu_Tau1_2cand_vec.DeltaR(Neu_Tau2_2cand_vec) < 0.2) || (Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_3cand_vec) < 0.2) ||
-			   (Neu_Tau1_2cand_vec.DeltaR(Neu_Tau2_4cand_vec) < 0.2)){
+		        if((Neu_Tau1_2cand_vec.DeltaR(Neu_Tau1_1cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_2cand_vec.DeltaR(Neu_Tau2_1cand_vec) < DR_taui_tauj_min) ||
+			   (Neu_Tau1_2cand_vec.DeltaR(Neu_Tau2_2cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_3cand_vec) < DR_taui_tauj_min) ||
+			   (Neu_Tau1_2cand_vec.DeltaR(Neu_Tau2_4cand_vec) < DR_taui_tauj_min)){
 			  Neu_Tau1_2cand_vec.SetPtEtaPhiE(0., 0., 0., 0.);
 			}
 		      }
@@ -403,26 +423,26 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
                     if((tau1 == true) && (tau1_2 == true) && (tau1_3 == false)){
                       Tau1_3cand_vec.SetPtEtaPhiE(daughter_1->PT, daughter_1->Eta, daughter_1->Phi, tau1cand_energy);
                       tau1_3 = true;
-		      if((Tau1_3cand_vec.DeltaR(Tau1_1cand_vec) < 0.2) || (Tau1_3cand_vec.DeltaR(Tau1_2cand_vec) < 0.2) || 
-                         (Tau1_3cand_vec.DeltaR(Tau2_1cand_vec) < 0.2) || (Tau1_3cand_vec.DeltaR(Tau2_2cand_vec) < 0.2) || 
-                         (Tau1_3cand_vec.DeltaR(Tau2_3cand_vec) < 0.2) || (Tau1_3cand_vec.DeltaR(Tau2_4cand_vec) < 0.2) ){
+		      if((Tau1_3cand_vec.DeltaR(Tau1_1cand_vec) < DR_taui_tauj_min) || (Tau1_3cand_vec.DeltaR(Tau1_2cand_vec) < DR_taui_tauj_min) || 
+                         (Tau1_3cand_vec.DeltaR(Tau2_1cand_vec) < DR_taui_tauj_min) || (Tau1_3cand_vec.DeltaR(Tau2_2cand_vec) < DR_taui_tauj_min) || 
+                         (Tau1_3cand_vec.DeltaR(Tau2_3cand_vec) < DR_taui_tauj_min) || (Tau1_3cand_vec.DeltaR(Tau2_4cand_vec) < DR_taui_tauj_min) ){
 			Tau1_3cand_vec.SetPtEtaPhiE(0., 0., 0., 0.);
 			tau1_3 = false;
 		      }
 		      
                       if((abs(daughther1_Tau1cand->PID)==16) && (daughther1_Tau1cand->Status == 1)){
 			Neu_Tau1_3cand_vec.SetPtEtaPhiE(daughther1_Tau1cand->PT, daughther1_Tau1cand->Eta, daughther1_Tau1cand->Phi, Neu_tau1_energy_d1);
-		        if((Neu_Tau1_3cand_vec.DeltaR(Neu_Tau1_1cand_vec) < 0.2) || (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau1_2cand_vec) < 0.2) || 
-                           (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_1cand_vec) < 0.2) || (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_2cand_vec) < 0.2) || 
-                           (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_3cand_vec) < 0.2) || (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_4cand_vec) < 0.2) ){
+		        if((Neu_Tau1_3cand_vec.DeltaR(Neu_Tau1_1cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau1_2cand_vec) < DR_taui_tauj_min) || 
+                           (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_1cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_2cand_vec) < DR_taui_tauj_min) || 
+                           (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_3cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_4cand_vec) < DR_taui_tauj_min) ){
 			  Neu_Tau1_3cand_vec.SetPtEtaPhiE(0., 0., 0., 0.);
 			}
                       }
 		      if((abs(daughther2_Tau1cand->PID)==16) && (daughther2_Tau1cand->Status == 1)){
 			Neu_Tau1_3cand_vec.SetPtEtaPhiE(daughther2_Tau1cand->PT, daughther2_Tau1cand->Eta, daughther2_Tau1cand->Phi, Neu_tau1_energy_d2);
-                        if((Neu_Tau1_3cand_vec.DeltaR(Neu_Tau1_1cand_vec) < 0.2) || (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau1_2cand_vec) < 0.2) || 
-                           (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_1cand_vec) < 0.2) || (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_2cand_vec) < 0.2) ||
-                           (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_3cand_vec) < 0.2) || (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_4cand_vec) < 0.2) ){ 
+                        if((Neu_Tau1_3cand_vec.DeltaR(Neu_Tau1_1cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau1_2cand_vec) < DR_taui_tauj_min) || 
+                           (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_1cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_2cand_vec) < DR_taui_tauj_min) ||
+                           (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_3cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_4cand_vec) < DR_taui_tauj_min) ){ 
 			  Neu_Tau1_3cand_vec.SetPtEtaPhiE(0., 0., 0., 0.);
 			}
 		      }
@@ -430,27 +450,27 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
                     // Same for TLV4
 		    if((tau1 == true) && (tau1_2 == true) && (tau1_3 == true)){ 
                       Tau1_4cand_vec.SetPtEtaPhiE(daughter_1->PT, daughter_1->Eta, daughter_1->Phi, tau1cand_energy);
-		      if((Tau1_4cand_vec.DeltaR(Tau1_1cand_vec) < 0.2) || (Tau1_4cand_vec.DeltaR(Tau1_2cand_vec) < 0.2) || 
-                         (Tau1_4cand_vec.DeltaR(Tau1_3cand_vec) < 0.2) || (Tau1_4cand_vec.DeltaR(Tau2_1cand_vec) < 0.2) || 
-                         (Tau1_4cand_vec.DeltaR(Tau2_2cand_vec) < 0.2) || (Tau1_4cand_vec.DeltaR(Tau2_3cand_vec) < 0.2) ||
-                         (Tau1_4cand_vec.DeltaR(Tau2_4cand_vec) < 0.2) ){
+		      if((Tau1_4cand_vec.DeltaR(Tau1_1cand_vec) < DR_taui_tauj_min) || (Tau1_4cand_vec.DeltaR(Tau1_2cand_vec) < DR_taui_tauj_min) || 
+                         (Tau1_4cand_vec.DeltaR(Tau1_3cand_vec) < DR_taui_tauj_min) || (Tau1_4cand_vec.DeltaR(Tau2_1cand_vec) < DR_taui_tauj_min) || 
+                         (Tau1_4cand_vec.DeltaR(Tau2_2cand_vec) < DR_taui_tauj_min) || (Tau1_4cand_vec.DeltaR(Tau2_3cand_vec) < DR_taui_tauj_min) ||
+                         (Tau1_4cand_vec.DeltaR(Tau2_4cand_vec) < DR_taui_tauj_min) ){
 			Tau1_4cand_vec.SetPtEtaPhiE(0., 0., 0., 0.);  
 		      }
                       if((abs(daughther1_Tau1cand->PID)==16) && (daughther1_Tau1cand->Status == 1)){
 			Neu_Tau1_4cand_vec.SetPtEtaPhiE(daughther1_Tau1cand->PT, daughther1_Tau1cand->Eta, daughther1_Tau1cand->Phi, Neu_tau1_energy_d1);
-                        if((Neu_Tau1_4cand_vec.DeltaR(Neu_Tau1_1cand_vec) < 0.2) || (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau1_2cand_vec) < 0.2) ||
-                           (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau1_3cand_vec) < 0.2) || (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_1cand_vec) < 0.2) || 
-                           (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_2cand_vec) < 0.2) || (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_3cand_vec) < 0.2) || 
-                           (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_4cand_vec) < 0.2) ){
+                        if((Neu_Tau1_4cand_vec.DeltaR(Neu_Tau1_1cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau1_2cand_vec) < DR_taui_tauj_min) ||
+                           (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau1_3cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_1cand_vec) < DR_taui_tauj_min) || 
+                           (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_2cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_3cand_vec) < DR_taui_tauj_min) || 
+                           (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_4cand_vec) < DR_taui_tauj_min) ){
 			  Neu_Tau1_4cand_vec.SetPtEtaPhiE(0., 0., 0., 0.);  
                         }
 		      }
 		      if((abs(daughther2_Tau1cand->PID)==16) && (daughther2_Tau1cand->Status == 1)){
 			Neu_Tau1_4cand_vec.SetPtEtaPhiE(daughther2_Tau1cand->PT, daughther2_Tau1cand->Eta, daughther2_Tau1cand->Phi, Neu_tau1_energy_d2);
-		        if((Neu_Tau1_4cand_vec.DeltaR(Neu_Tau1_1cand_vec) < 0.2) || (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau1_2cand_vec) < 0.2) ||
-                           (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau1_3cand_vec) < 0.2) || (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_1cand_vec) < 0.2) || 
-                           (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_2cand_vec) < 0.2) || (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_3cand_vec) < 0.2) || 
-                           (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_4cand_vec) < 0.2) ){
+		        if((Neu_Tau1_4cand_vec.DeltaR(Neu_Tau1_1cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau1_2cand_vec) < DR_taui_tauj_min) ||
+                           (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau1_3cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_1cand_vec) < DR_taui_tauj_min) || 
+                           (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_2cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_3cand_vec) < DR_taui_tauj_min) || 
+                           (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_4cand_vec) < DR_taui_tauj_min) ){
 			  Neu_Tau1_4cand_vec.SetPtEtaPhiE(0., 0., 0., 0.);  
 			}
 		      }
@@ -475,23 +495,23 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
 		    if((tau2 == false) && (tau2_2 == false) && (tau2_3 == false)){
 		      tau2 = true;
 		      Tau2_1cand_vec.SetPtEtaPhiE(daughter_2->PT, daughter_2->Eta, daughter_2->Phi, tau2cand_energy);
-		      if((Tau1_1cand_vec.DeltaR(Tau2_1cand_vec) < 0.2) || (Tau1_2cand_vec.DeltaR(Tau2_1cand_vec) < 0.2) || 
-                         (Tau1_3cand_vec.DeltaR(Tau2_1cand_vec) < 0.2) || (Tau1_4cand_vec.DeltaR(Tau2_1cand_vec) < 0.2)){
+		      if((Tau1_1cand_vec.DeltaR(Tau2_1cand_vec) < DR_taui_tauj_min) || (Tau1_2cand_vec.DeltaR(Tau2_1cand_vec) < DR_taui_tauj_min) || 
+                         (Tau1_3cand_vec.DeltaR(Tau2_1cand_vec) < DR_taui_tauj_min) || (Tau1_4cand_vec.DeltaR(Tau2_1cand_vec) < DR_taui_tauj_min)){
 			Tau2_1cand_vec.SetPtEtaPhiE(0., 0., 0., 0.);
 			tau2 = false;
 		      }
 		      if((abs(daughther1_Tau2cand->PID)==16) && (daughther1_Tau2cand->Status == 1)){
 			Neu_Tau2_1cand_vec.SetPtEtaPhiE(daughther1_Tau2cand->PT, daughther1_Tau2cand->Eta, daughther1_Tau2cand->Phi, Neu_tau2_energy_d1);
-			if((Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_1cand_vec) < 0.2) || (Neu_Tau1_2cand_vec.DeltaR(Neu_Tau2_1cand_vec) < 0.2) ||
-			   (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_1cand_vec) < 0.2) || (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_1cand_vec) < 0.2)){
+			if((Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_1cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_2cand_vec.DeltaR(Neu_Tau2_1cand_vec) < DR_taui_tauj_min) ||
+			   (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_1cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_1cand_vec) < DR_taui_tauj_min)){
 			  Neu_Tau2_1cand_vec.SetPtEtaPhiE(0., 0., 0., 0.);
 			}
 		      }
 		      
 		      if((abs(daughther2_Tau2cand->PID)==16) && (daughther2_Tau2cand->Status == 1)){
 			Neu_Tau2_1cand_vec.SetPtEtaPhiE(daughther2_Tau2cand->PT, daughther2_Tau2cand->Eta, daughther2_Tau2cand->Phi, Neu_tau2_energy_d2);
-                        if((Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_1cand_vec) < 0.2) || (Neu_Tau1_2cand_vec.DeltaR(Neu_Tau2_1cand_vec) < 0.2) ||
-			   (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_1cand_vec) < 0.2) || (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_1cand_vec) < 0.2)){
+                        if((Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_1cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_2cand_vec.DeltaR(Neu_Tau2_1cand_vec) < DR_taui_tauj_min) ||
+			   (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_1cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_1cand_vec) < DR_taui_tauj_min)){
 			  Neu_Tau2_1cand_vec.SetPtEtaPhiE(0., 0., 0., 0.);
 			}
 		      }   
@@ -500,26 +520,26 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
 		    if((tau2 == true) && (tau2_2 == false) && (tau2_3 == false)){
 		      Tau2_2cand_vec.SetPtEtaPhiE(daughter_2->PT, daughter_2->Eta, daughter_2->Phi, tau2cand_energy);
 		      tau2_2 = true;
-		      if((Tau2_2cand_vec.DeltaR(Tau2_1cand_vec) < 0.2) || (Tau2_2cand_vec.DeltaR(Tau1_1cand_vec) < 0.2) || 
-                         (Tau2_2cand_vec.DeltaR(Tau1_2cand_vec) < 0.2) || (Tau2_2cand_vec.DeltaR(Tau1_3cand_vec) < 0.2) || 
-                         (Tau2_2cand_vec.DeltaR(Tau1_4cand_vec) < 0.2)){
+		      if((Tau2_2cand_vec.DeltaR(Tau2_1cand_vec) < DR_taui_tauj_min) || (Tau2_2cand_vec.DeltaR(Tau1_1cand_vec) < DR_taui_tauj_min) || 
+                         (Tau2_2cand_vec.DeltaR(Tau1_2cand_vec) < DR_taui_tauj_min) || (Tau2_2cand_vec.DeltaR(Tau1_3cand_vec) < DR_taui_tauj_min) || 
+                         (Tau2_2cand_vec.DeltaR(Tau1_4cand_vec) < DR_taui_tauj_min)){
 			Tau2_2cand_vec.SetPtEtaPhiE(0., 0., 0., 0.);
 			tau2_2 = false;
 		      }
 		      
 		      if((abs(daughther1_Tau2cand->PID)==16) && (daughther1_Tau2cand->Status == 1)){
 			Neu_Tau2_2cand_vec.SetPtEtaPhiE(daughther1_Tau2cand->PT, daughther1_Tau2cand->Eta, daughther1_Tau2cand->Phi, Neu_tau2_energy_d1);
-                        if((Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_2cand_vec) < 0.2) || (Neu_Tau1_2cand_vec.DeltaR(Neu_Tau2_2cand_vec) < 0.2) ||
-                           (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_2cand_vec) < 0.2) || (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_2cand_vec) < 0.2) || 
-                           (Neu_Tau2_1cand_vec.DeltaR(Neu_Tau2_2cand_vec) < 0.2)){
+                        if((Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_2cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_2cand_vec.DeltaR(Neu_Tau2_2cand_vec) < DR_taui_tauj_min) ||
+                           (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_2cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_2cand_vec) < DR_taui_tauj_min) || 
+                           (Neu_Tau2_1cand_vec.DeltaR(Neu_Tau2_2cand_vec) < DR_taui_tauj_min)){
 			  Neu_Tau2_2cand_vec.SetPtEtaPhiE(0., 0., 0., 0.); 		      
 			}
 		      }
 		      if((abs(daughther2_Tau2cand->PID)==16) && (daughther2_Tau2cand->Status == 1)){
 			Neu_Tau2_2cand_vec.SetPtEtaPhiE(daughther2_Tau2cand->PT, daughther2_Tau2cand->Eta, daughther2_Tau2cand->Phi, Neu_tau2_energy_d2);
-		        if((Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_2cand_vec) < 0.2) || (Neu_Tau1_2cand_vec.DeltaR(Neu_Tau2_2cand_vec) < 0.2) ||
-                           (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_2cand_vec) < 0.2) || (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_2cand_vec) < 0.2) || 
-                           (Neu_Tau2_1cand_vec.DeltaR(Neu_Tau2_2cand_vec) < 0.2)){
+		        if((Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_2cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_2cand_vec.DeltaR(Neu_Tau2_2cand_vec) < DR_taui_tauj_min) ||
+                           (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_2cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_2cand_vec) < DR_taui_tauj_min) || 
+                           (Neu_Tau2_1cand_vec.DeltaR(Neu_Tau2_2cand_vec) < DR_taui_tauj_min)){
 			  Neu_Tau2_2cand_vec.SetPtEtaPhiE(0., 0., 0., 0.); 
 			}
 		      }
@@ -528,25 +548,25 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
 		    if((tau2 == true) && (tau2_2 == true) && (tau2_3 == false)){
 		      Tau2_3cand_vec.SetPtEtaPhiE(daughter_2->PT, daughter_2->Eta, daughter_2->Phi, tau2cand_energy);
 		      tau2_3 = true;
-		      if((Tau2_3cand_vec.DeltaR(Tau2_1cand_vec) < 0.2) || (Tau2_3cand_vec.DeltaR(Tau2_2cand_vec) < 0.2) || 
-                         (Tau2_3cand_vec.DeltaR(Tau1_1cand_vec) < 0.2) || (Tau2_3cand_vec.DeltaR(Tau1_2cand_vec) < 0.2) || 
-                         (Tau2_3cand_vec.DeltaR(Tau1_3cand_vec) < 0.2) || (Tau2_3cand_vec.DeltaR(Tau1_4cand_vec) < 0.2)){
+		      if((Tau2_3cand_vec.DeltaR(Tau2_1cand_vec) < DR_taui_tauj_min) || (Tau2_3cand_vec.DeltaR(Tau2_2cand_vec) < DR_taui_tauj_min) || 
+                         (Tau2_3cand_vec.DeltaR(Tau1_1cand_vec) < DR_taui_tauj_min) || (Tau2_3cand_vec.DeltaR(Tau1_2cand_vec) < DR_taui_tauj_min) || 
+                         (Tau2_3cand_vec.DeltaR(Tau1_3cand_vec) < DR_taui_tauj_min) || (Tau2_3cand_vec.DeltaR(Tau1_4cand_vec) < DR_taui_tauj_min)){
 			Tau2_3cand_vec.SetPtEtaPhiE(0., 0., 0., 0.);
 			tau2_3 = false;
 		      }
 		      if((abs(daughther1_Tau2cand->PID)==16) && (daughther1_Tau2cand->Status == 1)){
 			Neu_Tau2_3cand_vec.SetPtEtaPhiE(daughther1_Tau2cand->PT, daughther1_Tau2cand->Eta, daughther1_Tau2cand->Phi, Neu_tau2_energy_d1);
-		        if((Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_3cand_vec) < 0.2) || (Neu_Tau1_2cand_vec.DeltaR(Neu_Tau2_3cand_vec) < 0.2) ||
-                           (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_3cand_vec) < 0.2) || (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_3cand_vec) < 0.2) || 
-                           (Neu_Tau2_1cand_vec.DeltaR(Neu_Tau2_3cand_vec) < 0.2) || (Neu_Tau2_2cand_vec.DeltaR(Neu_Tau2_3cand_vec) < 0.2)){
+		        if((Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_3cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_2cand_vec.DeltaR(Neu_Tau2_3cand_vec) < DR_taui_tauj_min) ||
+                           (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_3cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_3cand_vec) < DR_taui_tauj_min) || 
+                           (Neu_Tau2_1cand_vec.DeltaR(Neu_Tau2_3cand_vec) < DR_taui_tauj_min) || (Neu_Tau2_2cand_vec.DeltaR(Neu_Tau2_3cand_vec) < DR_taui_tauj_min)){
 			  Neu_Tau2_3cand_vec.SetPtEtaPhiE(0., 0., 0., 0.);
 			}
                       }
 		      if((abs(daughther2_Tau2cand->PID)==16) && (daughther2_Tau2cand->Status == 1)){
 			Neu_Tau2_3cand_vec.SetPtEtaPhiE(daughther2_Tau2cand->PT, daughther2_Tau2cand->Eta, daughther2_Tau2cand->Phi, Neu_tau2_energy_d2);
-		        if((Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_3cand_vec) < 0.2) || (Neu_Tau1_2cand_vec.DeltaR(Neu_Tau2_3cand_vec) < 0.2) ||
-                           (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_3cand_vec) < 0.2) || (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_3cand_vec) < 0.2) || 
-                           (Neu_Tau2_1cand_vec.DeltaR(Neu_Tau2_3cand_vec) < 0.2) || (Neu_Tau2_2cand_vec.DeltaR(Neu_Tau2_3cand_vec) < 0.2)){
+		        if((Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_3cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_2cand_vec.DeltaR(Neu_Tau2_3cand_vec) < DR_taui_tauj_min) ||
+                           (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_3cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_3cand_vec) < DR_taui_tauj_min) || 
+                           (Neu_Tau2_1cand_vec.DeltaR(Neu_Tau2_3cand_vec) < DR_taui_tauj_min) || (Neu_Tau2_2cand_vec.DeltaR(Neu_Tau2_3cand_vec) < DR_taui_tauj_min)){
 			  Neu_Tau2_3cand_vec.SetPtEtaPhiE(0., 0., 0., 0.);
                         }
                       }
@@ -554,27 +574,27 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
 		    
 		    if((tau2 == true) && (tau2_2 == true) && (tau2_3 == true)){
 		      Tau2_4cand_vec.SetPtEtaPhiE(daughter_2->PT, daughter_2->Eta, daughter_2->Phi, tau2cand_energy);
-		      if((Tau2_4cand_vec.DeltaR(Tau2_1cand_vec) < 0.2) || (Tau2_4cand_vec.DeltaR(Tau2_2cand_vec) < 0.2) || 
-                         (Tau2_4cand_vec.DeltaR(Tau2_3cand_vec) < 0.2) || (Tau2_4cand_vec.DeltaR(Tau1_1cand_vec) < 0.2) || 
-                         (Tau2_4cand_vec.DeltaR(Tau1_2cand_vec) < 0.2) || (Tau2_4cand_vec.DeltaR(Tau1_3cand_vec) < 0.2) ||
-			 (Tau2_4cand_vec.DeltaR(Tau1_4cand_vec) < 0.2)){
+		      if((Tau2_4cand_vec.DeltaR(Tau2_1cand_vec) < DR_taui_tauj_min) || (Tau2_4cand_vec.DeltaR(Tau2_2cand_vec) < DR_taui_tauj_min) || 
+                         (Tau2_4cand_vec.DeltaR(Tau2_3cand_vec) < DR_taui_tauj_min) || (Tau2_4cand_vec.DeltaR(Tau1_1cand_vec) < DR_taui_tauj_min) || 
+                         (Tau2_4cand_vec.DeltaR(Tau1_2cand_vec) < DR_taui_tauj_min) || (Tau2_4cand_vec.DeltaR(Tau1_3cand_vec) < DR_taui_tauj_min) ||
+			 (Tau2_4cand_vec.DeltaR(Tau1_4cand_vec) < DR_taui_tauj_min)){
 			Tau2_4cand_vec.SetPtEtaPhiE(0., 0., 0., 0.);
 		      }
 		      if((abs(daughther1_Tau2cand->PID)==16) && (daughther1_Tau2cand->Status == 1)){
 			Neu_Tau2_4cand_vec.SetPtEtaPhiE(daughther1_Tau2cand->PT, daughther1_Tau2cand->Eta, daughther1_Tau2cand->Phi, Neu_tau2_energy_d1);
-                        if((Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_4cand_vec) < 0.2) || (Neu_Tau1_2cand_vec.DeltaR(Neu_Tau2_4cand_vec) < 0.2) ||
-                           (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_4cand_vec) < 0.2) || (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_4cand_vec) < 0.2) || 
-                           (Neu_Tau2_1cand_vec.DeltaR(Neu_Tau2_4cand_vec) < 0.2) || (Neu_Tau2_2cand_vec.DeltaR(Neu_Tau2_4cand_vec) < 0.2) || 
-                           (Neu_Tau2_3cand_vec.DeltaR(Neu_Tau2_4cand_vec) < 0.2)){
+                        if((Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_4cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_2cand_vec.DeltaR(Neu_Tau2_4cand_vec) < DR_taui_tauj_min) ||
+                           (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_4cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_4cand_vec) < DR_taui_tauj_min) || 
+                           (Neu_Tau2_1cand_vec.DeltaR(Neu_Tau2_4cand_vec) < DR_taui_tauj_min) || (Neu_Tau2_2cand_vec.DeltaR(Neu_Tau2_4cand_vec) < DR_taui_tauj_min) || 
+                           (Neu_Tau2_3cand_vec.DeltaR(Neu_Tau2_4cand_vec) < DR_taui_tauj_min)){
 			  Neu_Tau2_4cand_vec.SetPtEtaPhiE(0., 0., 0., 0.);	      
 			}
 		      }
 		      if((abs(daughther2_Tau2cand->PID)==16) && (daughther2_Tau2cand->Status == 1)){
 			Neu_Tau2_4cand_vec.SetPtEtaPhiE(daughther2_Tau2cand->PT, daughther2_Tau2cand->Eta, daughther2_Tau2cand->Phi, Neu_tau2_energy_d2);
-			if((Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_4cand_vec) < 0.2) || (Neu_Tau1_2cand_vec.DeltaR(Neu_Tau2_4cand_vec) < 0.2) ||
-			   (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_4cand_vec) < 0.2) || (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_4cand_vec) < 0.2) || 
-			   (Neu_Tau2_1cand_vec.DeltaR(Neu_Tau2_4cand_vec) < 0.2) || (Neu_Tau2_2cand_vec.DeltaR(Neu_Tau2_4cand_vec) < 0.2) || 
-			   (Neu_Tau2_3cand_vec.DeltaR(Neu_Tau2_4cand_vec) < 0.2)){
+			if((Neu_Tau1_1cand_vec.DeltaR(Neu_Tau2_4cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_2cand_vec.DeltaR(Neu_Tau2_4cand_vec) < DR_taui_tauj_min) ||
+			   (Neu_Tau1_3cand_vec.DeltaR(Neu_Tau2_4cand_vec) < DR_taui_tauj_min) || (Neu_Tau1_4cand_vec.DeltaR(Neu_Tau2_4cand_vec) < DR_taui_tauj_min) || 
+			   (Neu_Tau2_1cand_vec.DeltaR(Neu_Tau2_4cand_vec) < DR_taui_tauj_min) || (Neu_Tau2_2cand_vec.DeltaR(Neu_Tau2_4cand_vec) < DR_taui_tauj_min) || 
+			   (Neu_Tau2_3cand_vec.DeltaR(Neu_Tau2_4cand_vec) < DR_taui_tauj_min)){
 			  Neu_Tau2_4cand_vec.SetPtEtaPhiE(0., 0., 0., 0.);
 			}
 		      }
@@ -674,14 +694,14 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
               bool tau2_3fill = false;
               bool tau2_4fill = false;
 	      
-              if(Tau1_1cand_vec.Pt() > 2.0 ){tau1_1fill = true;}
-              if(Tau1_2cand_vec.Pt() > 2.0 ){tau1_2fill = true;}
-              if(Tau1_3cand_vec.Pt() > 2.0 ){tau1_3fill = true;}
-              if(Tau1_4cand_vec.Pt() > 2.0 ){tau1_4fill = true;}  
-              if(Tau2_1cand_vec.Pt() > 2.0 ){tau2_1fill = true;}
-              if(Tau2_2cand_vec.Pt() > 2.0 ){tau2_2fill = true;}
-              if(Tau2_3cand_vec.Pt() > 2.0 ){tau2_3fill = true;}
-              if(Tau2_4cand_vec.Pt() > 2.0 ){tau2_4fill = true;}
+              if(Tau1_1cand_vec.Pt() > 2.0){tau1_1fill = true;}
+              if(Tau1_2cand_vec.Pt() > 2.0){tau1_2fill = true;}
+              if(Tau1_3cand_vec.Pt() > 2.0){tau1_3fill = true;}
+              if(Tau1_4cand_vec.Pt() > 2.0){tau1_4fill = true;}  
+              if(Tau2_1cand_vec.Pt() > 2.0){tau2_1fill = true;}
+              if(Tau2_2cand_vec.Pt() > 2.0){tau2_2fill = true;}
+              if(Tau2_3cand_vec.Pt() > 2.0){tau2_3fill = true;}
+              if(Tau2_4cand_vec.Pt() > 2.0){tau2_4fill = true;}
               
 	      /////Si tenemos un tau en el evento se tiene 2 posibilidades ///////
 	      
@@ -828,44 +848,57 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
 		cout <<"Tau4Had_vec.Pt "<<Tau4Had_vec.Pt()<<" Tau4Had_vec.Eta() "<<Tau4Had_vec.Eta()<<endl; 
               */
 	      
-              if(NeuTau1Had_vec.Pt()>0){
+              if(NeuTau1Had_vec.Pt()> 0.){
 		Tau1Had_vec.SetPtEtaPhiE(abs(Tau1Had_vec.Pt()-NeuTau1Had_vec.Pt()), Tau1Had_vec.Eta(), Tau1Had_vec.Phi(), Tau1Had_vec.E());
+                if (Jet_leading_vec.DeltaR(Tau1Had_vec) < 0.2){Jet_leading_vec.SetPtEtaPhiE(0., 0., 0., 0.);}
 	      }
-	      
-              if(NeuTau2Had_vec.Pt()>0){
+              if(NeuTau2Had_vec.Pt()> 0. ){
 		Tau2Had_vec.SetPtEtaPhiE(abs(Tau2Had_vec.Pt()-NeuTau2Had_vec.Pt()), Tau2Had_vec.Eta(), Tau2Had_vec.Phi(), Tau2Had_vec.E());
+                if (Jet_leading_vec.DeltaR(Tau2Had_vec) < 0.2){Jet_leading_vec.SetPtEtaPhiE(0., 0., 0., 0.);}
 	      }
-	      
-	      if(NeuTau3Had_vec.Pt()>0){
+	      if(NeuTau3Had_vec.Pt()> 0. ){
 		Tau3Had_vec.SetPtEtaPhiE(abs(Tau3Had_vec.Pt()-NeuTau3Had_vec.Pt()), Tau3Had_vec.Eta(), Tau3Had_vec.Phi(), Tau3Had_vec.E());
+               if (Jet_leading_vec.DeltaR(Tau3Had_vec) < 0.2){Jet_leading_vec.SetPtEtaPhiE(0., 0., 0., 0.);}
 	      } 
-	      
-	      if(NeuTau4Had_vec.Pt()>0){
+	      if(NeuTau4Had_vec.Pt()>0. ){
 		Tau4Had_vec.SetPtEtaPhiE(abs(Tau4Had_vec.Pt()-NeuTau4Had_vec.Pt()), Tau4Had_vec.Eta(), Tau4Had_vec.Phi(), Tau4Had_vec.E());
+                if (Jet_leading_vec.DeltaR(Tau4Had_vec) < 0.2){Jet_leading_vec.SetPtEtaPhiE(0., 0., 0., 0.);}
 	      }
-              
-	/*	cout << "--------------Taus Hadronicos una vez se resta el momento-----------"<<endl;
-		cout <<"Tau1Had_vec.Pt "<<Tau1Had_vec.Pt()<<" Tau1Had_vec.Eta() "<<Tau1Had_vec.Eta()<<endl;
-		cout <<"Tau2Had_vec.Pt "<<Tau2Had_vec.Pt()<<" Tau2Had_vec.Eta() "<<Tau2Had_vec.Eta()<<endl;
-		cout <<"Tau3Had_vec.Pt "<<Tau3Had_vec.Pt()<<" Tau3Had_vec.Eta() "<<Tau3Had_vec.Eta()<<endl;
-		cout <<"Tau4Had_vec.Pt "<<Tau4Had_vec.Pt()<<" Tau4Had_vec.Eta() "<<Tau4Had_vec.Eta()<<endl;              
-          */    
+              /*
+              cout << "--------------Taus Hadronicos-----------"<<endl;
+              cout <<"Tau1Had_vec.Pt "<<Tau1Had_vec.Pt()<<endl;
+              cout <<"Tau2Had_vec.Pt "<<Tau2Had_vec.Pt()<<endl;
+              cout <<"Tau3Had_vec.Pt "<<Tau3Had_vec.Pt()<<endl;
+              cout <<"Tau4Had_vec.Pt "<<Tau4Had_vec.Pt()<<endl; 
+              */
               //Se deben organizar nuevamente los TLV de los taus ya que al restar el momento de los neutrinos puede cambiar el orden.
+              if(Tau1Had_vec.Pt() > 0. && Tau2Had_vec.Pt() == 0.){
+              Tau1HadTLV = Tau1Had_vec;
+              }
+              if(Tau1Had_vec.Pt() > 0. && Tau2Had_vec.Pt() > 0.){              
               Mayor_menorPt(Tau1Had_vec, Tau2Had_vec, Tau3Had_vec, Tau4Had_vec, NeuTau1Had_vec, NeuTau2Had_vec, NeuTau3Had_vec, NeuTau4Had_vec, &Tau1HadTLV, &Tau2HadTLV, 
                             &Tau3HadTLV, &Tau4HadTLV, &NeuTau1HadTLV,  &NeuTau2HadTLV,  &NeuTau3HadTLV,  &NeuTau4HadTLV);
+              }
 		  /*cout << "--------------Taus Hadronicos una vez se resta el momento-----------"<<endl;
 		  cout <<"Tau1HadTLV.Pt "<<Tau1HadTLV.Pt()<<" Tau1HadTLV.Eta() "<<Tau1HadTLV.Eta()<<endl;
 		  cout <<"Tau2HadTLV.Pt "<<Tau2HadTLV.Pt()<<" Tau2HadTLV.Eta() "<<Tau2HadTLV.Eta()<<endl;
 		  cout <<"Tau3HadTLV.Pt "<<Tau3HadTLV.Pt()<<" Tau3HadTLV.Eta() "<<Tau3HadTLV.Eta()<<endl;
 		  cout <<"Tau4HadTLV.Pt "<<Tau4HadTLV.Pt()<<" Tau4HadTLV.Eta() "<<Tau4HadTLV.Eta()<<endl;
 	          */
-
 	      // Needed to generate a unique seed for the random number function used in the TauID function.
-	      srand48(entry);
+	      /*cout <<"-------------------------------"<<endl;
+              cout <<"Tau1HadTLV.Pt "<<Tau1HadTLV.Pt()<<endl;
+              cout <<"Tau2HadTLV.Pt "<<Tau2HadTLV.Pt()<<endl;
+              cout <<"-------------------------------"<<endl;
+              if(Tau1HadTLV.Pt() > 0.){ntau_counter++;}
+              if(Tau2HadTLV.Pt() > 0.){ntau_counter++;}
+              */
+
+              srand48(entry);
 	      bool passed_tau1Cand =  TauID(Tau1HadTLV);
 	      if (passed_tau1Cand) {
 		Tau1HadTLV = TauSmearing(Tau1HadTLV);
-		ntau_counter++;
+		//ntau_counter++;
 	      } else {
 		Tau1HadTLV.SetPtEtaPhiE(0.,0.,0.,0.);
 	      }
@@ -873,7 +906,7 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
 	      bool passed_tau2Cand =  TauID(Tau2HadTLV);
 	      if (passed_tau2Cand) { 
 		Tau2HadTLV = TauSmearing(Tau2HadTLV);
-		ntau_counter++;
+		//ntau_counter++;
 	      } else {
 		Tau2HadTLV.SetPtEtaPhiE(0.,0.,0.,0.);
 	      }
@@ -884,7 +917,15 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
 		Tau1HadTLV = Tau2HadTLV;
 		Tau2HadTLV.SetPtEtaPhiE(0.,0.,0.,0.);
               }
+              /*cout <<"-------------------------------"<<endl;
+              cout <<"Tau1HadTLV.Pt "<<Tau1HadTLV.Pt()<<endl;
+              cout <<"Tau2HadTLV.Pt "<<Tau2HadTLV.Pt()<<endl;
+              cout <<"-------------------------------"<<endl;
+              */
+             if(Tau1HadTLV.Pt() > 0.){ntau_counter++;}
+              if(Tau2HadTLV.Pt() > 0.){ntau_counter++;}
 	      
+
               //cout << "Tau1HadTLV "<< Tau1HadTLV.Pt() << "  Tau2HadTLV "<< Tau2HadTLV.Pt() <<endl;
 	      
               /////Numeros de taus en cada evento/////
@@ -895,7 +936,9 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
 	      
 	      //pass_cuts[1] = 1;
 	      
-	      
+	      if (Jet_leading_vec.Pt() > 2.0){
+                pass_cuts[0] = 1;
+              } 
 	      // for events with exactly 1 Tau
 	      if ((pass_cuts[0] == 1) && (ntau_counter == 1)){
 		pass_cuts[1] = 1; 
@@ -960,21 +1003,15 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
 	_hmap_n_tau[i]->Fill(ntau_counter);
 	
 	if ( pass_cuts[i] == 1){
-	  if (Jet_leading_vec.Pt() > 5.0) {
 	    double jet_met_dphi = abs(normalizedDphi(Jet_leading_vec.Phi() - MET_phi));
 	    _hmap_jet_met_Dphi[i]->Fill(abs(jet_met_dphi));
 	    _hmap_jet_met_metDphi[i]->Fill(abs(jet_met_dphi),MET);
 	    _hmap_Nevents[i]->Fill(1.0);
-	  }
-	  
-	  _hmap_met[i]->Fill(MET);
-	  if(Jet_leading_vec.Pt() > 5.0){
+	    _hmap_met[i]->Fill(MET);
 	    _hmap_lead_jet_pT[i]->Fill(Jet_leading_vec.Pt());
 	    _hmap_lead_jet_eta[i]->Fill(Jet_leading_vec.Eta());
 	    _hmap_lead_jet_phi[i]->Fill(Jet_leading_vec.Phi());
-	  }
-	  
-	  if(Tau1HadTLV.Pt() > 5.0){
+	    if(Tau1HadTLV.Pt() > 1.){ 
 	    _hmap_tau1_pT[i]->Fill(Tau1HadTLV.Pt());
 	    _hmap_tau1_eta[i]->Fill(Tau1HadTLV.Eta());
 	    _hmap_tau1_phi[i]->Fill(Tau1HadTLV.Phi());
@@ -984,13 +1021,14 @@ PhenoAnalysis::PhenoAnalysis(TChain& chain, TFile* theFile, TDirectory *cdDir[],
 	    double transmass = TMath::Sqrt(TMath::Abs(2*Tau1HadTLV.Pt()*MET*(1-TMath::Cos(TMath::Abs(Tau1HadTLV.Phi() - MET_phi)))));
 	    
 	    _hmap_transverse_mass[i]->Fill(transmass);
+            if(Jet_leading_vec.DeltaR(Tau1HadTLV) > .1){
 	    double tau1_jet_Dphi = TMath::Abs(Jet_leading_vec.Phi() - Tau1HadTLV.Phi());
-	    _hmap_tau1_jet_Dphi[i]->Fill(tau1_jet_Dphi);      
+	    _hmap_tau1_jet_Dphi[i]->Fill(tau1_jet_Dphi); 
 	    double efective_mass = TMath::Sqrt(Jet_leading_vec.Pt()*Jet_leading_vec.Pt()+Tau1HadTLV.Pt()*Tau1HadTLV.Pt()+MET*MET);
 	    _hmap_efective_mass[i]->Fill(efective_mass);       
-	    
-	  }
-	  if(Tau2HadTLV.Pt() > 5.0){
+	    }
+           }
+	  if(Tau2HadTLV.Pt() > 1.0){
 	    _hmap_tau2_pT[i]->Fill(Tau2HadTLV.Pt());
 	    _hmap_tau2_eta[i]->Fill(Tau2HadTLV.Eta());
 	    _hmap_tau2_phi[i]->Fill(Tau2HadTLV.Phi());
@@ -1106,11 +1144,11 @@ void PhenoAnalysis::Mayor_menorPt(TLorentzVector Tau1Cand, TLorentzVector Tau2Ca
       else{
 	*Tau5Cand = Tau1Cand;
 	*Tau6Cand = Tau4Cand;
-	*Tau7Cand = Tau4Cand;
+	*Tau7Cand = Tau3Cand;
 	*Tau8Cand = Tau2Cand;
 	*NeuTau5Cand = NeuTau1Cand;
 	*NeuTau6Cand = NeuTau4Cand;
-	*NeuTau7Cand = NeuTau4Cand;
+	*NeuTau7Cand = NeuTau3Cand;
 	*NeuTau8Cand = NeuTau2Cand;
       }
     }
